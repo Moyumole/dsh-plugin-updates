@@ -156,10 +156,12 @@ npm pack --dry-run          # 检查发布内容（当前 12 个文件 / ~39 KB�
 npm.cmd login
 npm.cmd publish             # prepublishOnly 会自动跑测试 + 生成物校验
 
-# 3. 打 tag / 发 Release
-git tag v0.2.1
+# 3. 打 tag / 发 Release（Release 不会自动再次发布 npm；发布后再建 Release）
+git tag vX.Y.Z              # 用 package.json 里的版本
 git push origin main --tags
 ```
+
+> CI 发布是**手动**的：GitHub Actions → `publish` → Run workflow（需要仓库 Secret `NPM_TOKEN`）。它使用 `npm publish --provenance`，并且当该版本已存在时会提示并安全跳过，因此创建 Release 不会触发重复发布。
 
 > **npm 账号开启 2FA 时**：`npm publish` 会返回 `E403 ... Two-factor authentication ... required to publish`。两种解决方式：
 > 1. 每次发布提供一次性验证码：`npm.cmd publish --otp=123456`；
