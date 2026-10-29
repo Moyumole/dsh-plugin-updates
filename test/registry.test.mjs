@@ -117,7 +117,7 @@ test('failed lookups are not cached', async () => {
   assert.equal(registry.size(), 1)
 })
 
-test('latestManifest times out when the registry never answers', async () => {
+test('latestManifest times out when the registry never answers', { timeout: 5000 }, async () => {
   const registry = createRegistry({
     fetchImpl: () => new Promise(() => {}),
     registries: [npm],
@@ -125,11 +125,20 @@ test('latestManifest times out when the registry never answers', async () => {
     timeoutMs: 25,
   })
 
-  assert.deepEqual(await registry.latestManifest('dsh-pet'), {
-    ok: false,
-    error: 'timeout',
-    registry: npm,
-  })
+  // Node's `AbortSignal.timeout` timer is unref'd, so under `node:test` (Node
+  // 20/22) the event loop can drain before the deadline fires and the test
+  // promise would hang forever. A ref'd interval keeps the loop alive for the
+  // duration of the assertion without changing what the registry does.
+  const keepAlive = setInterval(() => {}, 10)
+  try {
+    assert.deepEqual(await registry.latestManifest('dsh-pet'), {
+      ok: false,
+      error: 'timeout',
+      registry: npm,
+    })
+  } finally {
+    clearInterval(keepAlive)
+  }
 })
 
 test('latestManifest reports non-2xx responses', async () => {

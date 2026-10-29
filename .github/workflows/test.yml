@@ -10,7 +10,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node: ['20', '22', '24']
+        # Supported LTS lines only; Node 20 is end-of-life. The plugin itself
+        # runs in the DSH browser page, these versions gate the test scripts.
+        node: ['22', '24']
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
