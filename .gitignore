@@ -1,0 +1,24 @@
+# Dependencies installed by the profile / local tooling
+node_modules/
+
+# Logs and caches
+*.log
+.pnpm-store/
+coverage/
+
+# OS and editor noise
+.DS_Store
+Thumbs.db
+desktop.ini
+.idea/
+.vscode/
+
+# Local scratch
+*.tmp
+*.bak
+*.tgz
+
+# Local configuration / secrets (never commit credentials)
+.env
+.env.*
+!.env.example

@@ -1,0 +1,5 @@
+# Bundle layer for @moyumole/dsh-plugin-updates: one Host row that mounts the plugin and
+# attaches the browser half declared under `dsh.client` in package.json.
+- insert:
+    - id: plugin-updates
+      name: '@moyumole/dsh-plugin-updates'

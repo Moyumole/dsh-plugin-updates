@@ -1,0 +1,6 @@
+{
+  "meta": {
+    "title": "插件更新",
+    "description": "检查当前 profile 中第三方插件的 npm 新版本，并在面板内一键更新。"
+  }
+}

@@ -1,0 +1,6 @@
+{
+  "meta": {
+    "title": "Plugin Updates",
+    "description": "Checks the third-party plugin bundles installed in this profile against npm and updates them in place."
+  }
+}

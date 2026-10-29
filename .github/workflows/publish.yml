@@ -1,0 +1,33 @@
+name: publish
+
+# Publishing is manual (Actions → publish → Run workflow) or triggered by a
+# GitHub Release. Requires an NPM_TOKEN repository secret with permission to
+# publish @moyumole/* packages (a granular automation token is recommended).
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          registry-url: 'https://registry.npmjs.org'
+      - name: Install nothing (this package has no dependencies)
+        run: echo "no npm install needed"
+      - name: Verify sources and tests
+        run: |
+          node scripts/build-client.mjs --check
+          node --test test/*.test.mjs
+      - name: Publish to npm
+        run: npm publish --provenance --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

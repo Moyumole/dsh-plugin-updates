@@ -1,0 +1,35 @@
+# Third-party notices
+
+This project is MIT-licensed (see LICENSE). Small pieces of the DSH product are
+reproduced here because the plugin has to match the host's look and feel:
+
+## Left-sidebar "Plugins" glyph
+
+`lib/src/ui.js` (`LeftSidebarPluginsIcon`) reproduces the pinwheel SVG path data
+of the Host's plugin icon so the plugin can shadow that sidebar cell and draw an
+update badge. The artwork comes from DeepSeek Harness
+(`@deepseek-ai/dsh-client-ui-primitives`, `IconPluginPinwheelOutlineRegular`).
+
+- License: MIT
+- Copyright: Copyright (c) 2026 DeepSeek
+- Source: https://github.com/deepseek-ai/deepseek-harness
+
+The full MIT text that applies to that artwork is reproduced in the DSH package
+`LICENSE` (same MIT license text as this repository's LICENSE). The plugin does
+not copy any other DSH source code; it only calls the Host's public extension
+points (slots, the sidebar-right tab registry, and the plugin-manager Remote).
+
+## Toast presentation
+
+The toast position (top center, 40 px from the top), padding, radius and shadow
+follow the Host's own toast styling (measured from the built
+`@deepseek-ai/dsh-web-frontend` bundle) so the plugin notification matches the
+product. No stylesheet or component code from the Host is copied; only the
+layout measurements and the `--dsw-*` theme token names are reused, with
+token fallbacks so a renamed token degrades appearance rather than rendering.
+
+## Reference plugins
+
+`dsh-better-sidebar`, `dsh-pet`, `dsh-context` and `dsh-whale-widget` were used
+as installed integration targets and API references. No code from them is
+included in this package.

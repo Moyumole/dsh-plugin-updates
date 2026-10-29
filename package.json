@@ -1,0 +1,83 @@
+{
+  "name": "@moyumole/dsh-plugin-updates",
+  "version": "0.2.1",
+  "description": "Check installed third-party DSH plugin bundles against npm and update them in place, with a right-sidebar page, a Plugins-page tab and a left-sidebar badge.",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Moyumole/dsh-plugin-updates.git"
+  },
+  "homepage": "https://github.com/Moyumole/dsh-plugin-updates#readme",
+  "bugs": {
+    "url": "https://github.com/Moyumole/dsh-plugin-updates/issues"
+  },
+  "keywords": [
+    "dsh",
+    "dsh-plugin",
+    "deepseek-harness",
+    "cordis",
+    "plugin-manager",
+    "updates",
+    "web-ui"
+  ],
+  "type": "module",
+  "main": "lib/index.js",
+  "engines": {
+    "node": ">=20"
+  },
+  "exports": {
+    ".": "./lib/index.js",
+    "./client": "./lib/client.js",
+    "./icon": "./icon.svg",
+    "./locale/*.json": "./locale/*.json",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "lib/index.js",
+    "lib/client.js",
+    "cordis.patch.yml",
+    "locale/*.json",
+    "icon.svg",
+    "README.md",
+    "SECURITY.md",
+    "LICENSE",
+    "NOTICE",
+    "CHANGELOG.md"
+  ],
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "platform": "web",
+      "immediately": true,
+      "inject": [
+        "@deepseek-ai/dsh-client-locale",
+        "@deepseek-ai/dsh-api-remotes",
+        "@deepseek-ai/dsh-client-ui-sidebar-right"
+      ]
+    },
+    "manifestVersion": 1,
+    "compatibility": {
+      "dshReleases": {
+        "0.2.1-rc.3": "compatible"
+      }
+    }
+  },
+  "peerDependencies": {
+    "@deepseek-ai/cordis": "^4.0.5",
+    "@deepseek-ai/dsh-api-remotes": "^0.2.1-rc.1",
+    "@deepseek-ai/dsh-client-locale": "^0.2.1-rc.1",
+    "@deepseek-ai/dsh-client-ui-plugin-manager": "^0.2.1-rc.1",
+    "@deepseek-ai/dsh-client-ui-sidebar-right": "^0.2.1-rc.1",
+    "react": "^18.2.0"
+  },
+  "scripts": {
+    "build": "node scripts/build-client.mjs",
+    "test": "node --test test/*.test.mjs",
+    "prepublishOnly": "node scripts/build-client.mjs --check && node --test test/*.test.mjs"
+  },
+  "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  }
+}

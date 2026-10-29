@@ -1,0 +1,6 @@
+# Keep the generated browser bundle and sources LF in the repository so the
+# committed artifact matches what scripts/build-client.mjs produces on any OS.
+* text=auto eol=lf
+*.png binary
+*.jpg binary
+*.ico binary
