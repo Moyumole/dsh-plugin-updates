@@ -150,15 +150,28 @@ node scripts/preview-rows.mjs 0.2.1-rc.3  # 用真实 profile + registry 打印�
 # 1. 校验并打包
 node scripts/build-client.mjs --check
 node --test test/*.test.mjs
-npm pack --dry-run          # 检查发布内容（11 个文件）
+npm pack --dry-run          # 检查发布内容（当前 12 个文件 / ~39 KB）
 
-# 2. 发布到 npm（需要已 npm login 且有 @moyumole scope 权限）
-npm publish                 # prepublishOnly 会自动跑测试 + 生成物校验
+# 2. 登录并发布（Windows PowerShell 若报 npm.ps1 执行策略错误，就改用 npm.cmd）
+npm.cmd login
+npm.cmd publish             # prepublishOnly 会自动跑测试 + 生成物校验
 
 # 3. 打 tag / 发 Release
 git tag v0.2.1
 git push origin main --tags
 ```
+
+> **npm 账号开启 2FA 时**：`npm publish` 会返回 `E403 ... Two-factor authentication ... required to publish`。两种解决方式：
+> 1. 每次发布提供一次性验证码：`npm.cmd publish --otp=123456`；
+> 2. 创建带 **Bypass 2FA** 的 Granular Access Token（npmjs.com → Access Tokens → Generate New Token → Granular Access Token，包范围选 `@moyumole`，权限 Read and write，勾选 bypass two-factor authentication），然后：
+>    ```powershell
+>    $env:NODE_AUTH_TOKEN = "npm_xxx"   # 只在当前终端有效
+>    ```
+>    并在项目根目录新建 `.npmrc`（已被 `.gitignore` 忽略，切勿提交）：
+>    ```
+>    //registry.npmjs.org/:_authToken=${NODE_AUTH_TOKEN}
+>    ```
+>    GitHub Actions 发布则把同一个 token 配成仓库 Secret `NPM_TOKEN`。
 
 发布后提交到社区插件市场（dsh-plugin.org）：仓库是公开的、根目录含 `package.json`、README 含安装命令，并给仓库加 **`dsh-plugin`** topic；再到 <https://dsh-plugin.org/submit> 按模板提 issue（类别填 UI & Experience）。收录后即可在 DSH 内置 Plugin Hub 里被搜索/一键安装。
 
