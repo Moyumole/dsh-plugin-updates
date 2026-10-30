@@ -163,9 +163,10 @@ git tag vX.Y.Z
 git push origin vX.Y.Z
 ```
 
-> - 缺失 `NPM_TOKEN` 时 GitHub Release **仍会创建**（notes 取 CHANGELOG 对应版本），但 workflow 会**报错提醒**（不会静默跳过 npm）；补上 Secret 后手动运行 `publish` workflow 或重新运行 release workflow 即可补发。
+> - **推荐：npm Trusted Publishing（OIDC）** —— 在 npm 包页 Settings → Trusted Publisher 绑定一次：Publisher `GitHub Actions`、Organization/user `Moyumole`、Repository `dsh-plugin-updates`、Workflow filename `release.yml`、勾选 **Allow npm publish**、Environment 留空。之后 workflow 用短期 OIDC token 发布，**无需任何 secret**，npm 页面还会显示 provenance。
+> - 未绑定 Trusted Publisher 时 npm 步骤会报认证错误；GitHub Release **仍会创建**（notes 取 CHANGELOG 对应版本）。
 > - 版本已存在于 npm 时会自动跳过，不会重复发布。
-> - 手动备用：GitHub Actions → `publish` → Run workflow（同样需要 `NPM_TOKEN`）。
+> - 手动备用：GitHub Actions → `publish` → Run workflow（需要仓库 Secret `NPM_TOKEN`，与 Trusted Publishing 二选一即可）。
 
 > **npm 账号开启 2FA 时**：`npm publish` 会返回 `E403 ... Two-factor authentication ... required to publish`。两种解决方式：
 > 1. 每次发布提供一次性验证码：`npm.cmd publish --otp=123456`；
@@ -177,7 +178,7 @@ git push origin vX.Y.Z
 >    ```
 >    //registry.npmjs.org/:_authToken=${NODE_AUTH_TOKEN}
 >    ```
->    GitHub Actions 发布则把同一个 token 配成仓库 Secret `NPM_TOKEN`（**一次性配置**，之后发版无需人工操作）。
+>    GitHub Actions 发布如果用 token 方式（非 Trusted Publishing），把同一个 token 配成仓库 Secret `NPM_TOKEN` 供 `publish` workflow 使用。
 
 发布后提交到社区插件市场（dsh-plugin.org）：仓库是公开的、根目录含 `package.json`、README 含安装命令，并给仓库加 **`dsh-plugin`** topic；再到 <https://dsh-plugin.org/submit> 按模板提 issue（类别填 UI & Experience）。收录后即可在 DSH 内置 Plugin Hub 里被搜索/一键安装。
 

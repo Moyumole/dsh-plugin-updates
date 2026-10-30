@@ -4,11 +4,11 @@ name: release
 # verifies the tree, creates the GitHub Release from the matching CHANGELOG
 # section, and publishes the exact version to npm when it is not there yet.
 #
-# NPM_TOKEN is a one-time repository secret (granular token for @moyumole with
-# 2FA bypass). It is ordered AFTER the Release step on purpose: a missing token
-# fails this workflow loudly instead of silently skipping npm while the run
-# still shows green, and the Release is already created either way. Add the
-# secret once and future tag pushes publish both halves without manual steps.
+# npm publishing uses npm Trusted Publishing (OIDC): the package is configured,
+# one time, with "Publisher: GitHub Actions, Organization/user: Moyumole,
+# Repository: dsh-plugin-updates, Workflow filename: release.yml, Allow npm
+# publish". No NPM_TOKEN secret is needed; `id-token: write` below lets npm
+# exchange a short-lived OIDC token (and produce provenance).
 on:
   push:
     tags:
@@ -59,14 +59,12 @@ jobs:
           else
             gh release create "$TAG" --title "$TAG" --generate-notes --verify-tag
           fi
-      - name: Publish to npm when needed
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      - name: Upgrade npm for Trusted Publishing
         run: |
-          if [ -z "${NODE_AUTH_TOKEN:-}" ]; then
-            echo "::error title=NPM_TOKEN missing::Add the NPM_TOKEN repository secret (Settings -> Secrets and variables -> Actions) so releases publish to npm. The GitHub Release was created; re-run this workflow after adding it."
-            exit 1
-          fi
+          npm install -g npm@latest
+          npm --version
+      - name: Publish to npm when needed (Trusted Publishing / OIDC)
+        run: |
           NAME="${{ steps.pkg.outputs.name }}"
           VERSION="${{ steps.pkg.outputs.version }}"
           if npm view "$NAME@$VERSION" version >/dev/null 2>&1; then
