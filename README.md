@@ -49,7 +49,7 @@ Or enter the package name `@moyumole/dsh-plugin-updates` in "Settings → Plugin
 **From GitHub (pinned)**
 
 ```powershell
-dsh plugin --profile web add "github:Moyumole/dsh-plugin-updates#v0.2.3"
+dsh plugin --profile web add "github:Moyumole/dsh-plugin-updates#v0.2.4"
 ```
 
 The repository root is the plugin directory and `lib/client.js` is committed, so installing it does not require a build.
@@ -93,6 +93,7 @@ To be added (the maintainer will capture it on a **clean test profile**: panel l
 Verified on Windows + DSH `0.2.1-rc.3`:
 
 - [x] Automatic check on page load; 30-minute re-check while the page is visible (paused when hidden, catch-up on return); manual refresh; 10-minute cache
+- [x] Auto re-check verified on the real UI with the interval temporarily scaled to 15 seconds (production remains 30 minutes; the 30-minute wait itself was not run; the policy has unit tests)
 - [x] Correctly detects newer npm versions for third-party bundles (`dsh-better-sidebar`, `dsh-pet`, `dsh-context`, `dsh-whale-widget`)
 - [x] Real updates: `dsh-pet 0.3.7→0.3.8`, `dsh-better-sidebar 0.28.1→0.28.2`, `dsh-whale-widget 0.4.1→0.4.2`; `package.json` / `node_modules` / `pnpm-lock.yaml` stay consistent and other bundles are untouched
 - [x] Real "update all": `dsh-context 0.77.0→0.78.1` + `dsh-whale-widget 0.4.1→0.4.2`, batch progress (1/2→2/2) and the batch toast work
@@ -102,11 +103,12 @@ Verified on Windows + DSH `0.2.1-rc.3`:
 - [ ] Real "install failure → rollback" path (covered by unit tests; fault injection would be destructive on a real profile)
 - [ ] Linux / macOS and other DSH versions
 
-Automated checks: `node --test test/*.test.mjs` (100 tests: SemVer, compatibility, registry fallback/cache/input hardening, row building, controller state machine and rollback, auto-check scheduling policy, UI rendering and style constraints, bundle consistency). CI also verifies the committed bundle matches its sources.
+Automated checks: `node --test test/*.test.mjs` (102 tests: SemVer, compatibility, registry fallback/cache/input hardening, row building, controller state machine and rollback, host-capability failures, auto-check scheduling policy, UI rendering and style constraints, bundle consistency). CI also verifies the committed bundle matches its sources.
 
 ### Known limitations
 
 - The right sidebar is a per-Session column: with no Session open, use "Settings → Plugins → Plugin updates".
+- If the host removes or renames a Remote method (for example `installBundle`), the panel shows a localized "plugin manager is not available" banner and updates fail on that row instead of throwing an obscure error.
 - The left-sidebar badge shadows the host's "Plugins" icon cell (`sidebar.panellist`, `priority: -1`); a host redesign may require a visual sync, but functionality is unaffected.
 - Only the npm registry is supported (npmjs with the npmmirror fallback); private registries are not.
 - This plugin does not check or update DSH itself, and does not manage official `@deepseek-ai/*` bundles.
@@ -221,7 +223,7 @@ dsh plugin --profile web add "@moyumole/dsh-plugin-updates"
 **从 GitHub 安装（锁版本）**
 
 ```powershell
-dsh plugin --profile web add "github:Moyumole/dsh-plugin-updates#v0.2.3"
+dsh plugin --profile web add "github:Moyumole/dsh-plugin-updates#v0.2.4"
 ```
 
 仓库根目录就是插件目录，`lib/client.js` 已随仓库提交，安装时**不需要构建**。
@@ -267,6 +269,7 @@ dsh plugin --profile web add "<本机路径>/dsh-plugin-updates"
 在 Windows + DSH `0.2.1-rc.3` 上已完成真机验证：
 
 - [x] 页面加载后自动检查并显示结果；页面可见时每 30 分钟自动复查（隐藏暂停、回前台补查）；手动刷新、10 分钟缓存
+- [x] 自动复查真机验证：临时把间隔缩到 **15 秒**后时间戳自动更新（正式 30 分钟未做长时等待；调度策略由单测覆盖）
 - [x] 正确识别第三方插件新版本（`dsh-better-sidebar`、`dsh-pet`、`dsh-context`、`dsh-whale-widget`）
 - [x] 真机更新：`dsh-pet 0.3.7→0.3.8`、`dsh-better-sidebar 0.28.1→0.28.2`、`dsh-whale-widget 0.4.1→0.4.2`，磁盘 `package.json` / `node_modules` / `pnpm-lock.yaml` 一致，其他插件未受影响
 - [x] 真机「全部更新」批量：`dsh-context 0.77.0→0.78.1` + `dsh-whale-widget 0.4.1→0.4.2`，批量进度（1/2→2/2）与顶部汇总 toast 正常
@@ -276,11 +279,12 @@ dsh plugin --profile web add "<本机路径>/dsh-plugin-updates"
 - [ ] 真机「安装失败 → 回滚」路径（当前由单元测试覆盖；故障注入对真实环境有破坏性，暂不做）
 - [ ] Linux / macOS、其他 DSH 版本
 
-自动化测试：`node --test test/*.test.mjs`（100 项，覆盖版本比较、兼容性、registry 回退/缓存/输入加固、行构建、controller 状态机与回滚、自动复查调度策略、UI 渲染与样式约束、bundle 一致性）；CI 还会校验生成物与源码一致。
+自动化测试：`node --test test/*.test.mjs`（102 项，覆盖版本比较、兼容性、registry 回退/缓存/输入加固、行构建、controller 状态机与回滚、宿主能力缺失、自动复查调度策略、UI 渲染与样式约束、bundle 一致性）；CI 还会校验生成物与源码一致。
 
 ### 已知限制
 
 - 右侧栏是按会话存在的列：没有打开会话时请用「设置 → 插件 → 插件更新」。
+- 若宿主删除或重命名了 Remote 方法（例如 `installBundle`），面板会显示本地化的「插件管理器不可用」错误横幅，更新会按失败处理，而不是抛出难以理解的异常。
 - 左侧栏红点通过遮蔽宿主「插件」图标单元实现（`sidebar.panellist` 的 `plugins` 单元，`priority: -1`）；宿主大改该图标时外观需要同步，功能不受影响。
 - 只支持 npm registry（官方源 + npmmirror 回退），不支持私有 registry。
 - 不检查、不更新 DSH 本体；不管理官方随附 bundle（`@deepseek-ai/*`）。

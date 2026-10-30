@@ -1,6 +1,6 @@
 {
   "name": "@moyumole/dsh-plugin-updates",
-  "version": "0.2.3",
+  "version": "0.2.4",
   "description": "Check installed third-party DSH plugin bundles against npm and update them in place, with a right-sidebar page, a Plugins-page tab and a left-sidebar badge.",
   "repository": {
     "type": "git",
@@ -22,7 +22,7 @@
   "type": "module",
   "main": "lib/index.js",
   "engines": {
-    "node": ">=20"
+    "node": ">=22"
   },
   "exports": {
     ".": "./lib/index.js",

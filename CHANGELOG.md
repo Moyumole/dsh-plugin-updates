@@ -7,6 +7,35 @@ All notable changes to this project are documented here. The format follows
 Each release lists the changes in English first, then in Chinese.  
 每个版本的变更先列英文、再列中文。
 
+## [0.2.4] - 2026-10-30
+
+### Added
+
+- Host capability detection: a missing plugin-manager namespace or a removed
+  Remote method (`installBundle`, `removeBundle`, `listBundles`) now surfaces as a
+  localized, dismissible "plugin manager is not available" banner, and an update
+  attempt on such a host becomes a normal failed row instead of an obscure
+  exception.
+
+### Changed
+
+- CI workflows pin `actions/checkout` and `actions/setup-node` to immutable commit
+  SHAs (v7); Dependabot keeps the pins current.
+- `engines.node` now matches the tested LTS lines (`>=22`).
+- README verification wording: the visible-page auto re-check was verified on the
+  real UI with the interval temporarily scaled to 15 seconds; the production
+  30-minute interval was not waited out (the policy is unit-tested).
+
+### 新增
+
+- 宿主能力探测：插件管理器命名空间缺失，或 Remote 方法（`installBundle`、`removeBundle`、`listBundles`）被删除时，面板显示本地化、可关闭的「插件管理器不可用」横幅；此情形下的更新会记录为普通失败行，而不是抛出难以理解的异常。
+
+### 变更
+
+- CI workflow 将 `actions/checkout` 与 `actions/setup-node` 固定到不可变 commit SHA（v7），由 Dependabot 负责更新。
+- `engines.node` 调整为与测试矩阵一致的 `>=22`。
+- README 验收措辞修正：可见页自动复查已在真机用 15 秒缩放间隔验证；正式 30 分钟间隔未做长时等待（调度策略由单测覆盖）。
+
 ## [0.2.3] - 2026-10-30
 
 ### Changed

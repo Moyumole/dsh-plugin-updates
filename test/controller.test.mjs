@@ -223,6 +223,43 @@ test('a refused Remote answer surfaces as a check failure', async () => {
   assert.match(snapshot.error, /permission denied/)
 })
 
+test('a host without the plugin manager namespace fails with a stable error code', async () => {
+  const controller = createController({
+    remote: () => ({ pluginManager: undefined }),
+    registry: fakeRegistry({}),
+    getRuntimeVersion: () => '0.2.1-rc.3',
+    getLocaleId: () => 'en',
+    now: () => 1_700_000_000_000,
+  })
+
+  await controller.refresh()
+
+  const snapshot = controller.getSnapshot()
+  assert.equal(snapshot.phase, 'failed')
+  assert.equal(snapshot.errorCode, 'no-manager')
+})
+
+test('a host that removed installBundle reports the update as failed instead of throwing', async () => {
+  const fake = fakeRemote(BASE_BUNDLES, {})
+  delete fake.remote.pluginManager.installBundle
+  const controller = createController({
+    remote: () => fake.remote,
+    registry: fakeRegistry(BASE_ANSWERS),
+    getRuntimeVersion: () => '0.2.1-rc.3',
+    getLocaleId: () => 'en',
+    now: () => 1_700_000_000_000,
+  })
+  await controller.refresh()
+
+  controller.requestUpdate('dsh-better-sidebar')
+  await controller.confirmUpdate()
+
+  const snapshot = controller.getSnapshot()
+  assert.equal(snapshot.phase, 'ready')
+  assert.match(snapshot.results['dsh-better-sidebar'].message, /missing installBundle/)
+  assert.equal(fake.calls.some((call) => call.method === 'removeBundle'), false)
+})
+
 test('a failed bundle read keeps the previous rows and reports the error', async () => {
   let fail = false
   const { controller } = build(BASE_BUNDLES, BASE_ANSWERS, {
