@@ -163,7 +163,7 @@ git tag vX.Y.Z
 git push origin vX.Y.Z
 ```
 
-> - 缺失 `NPM_TOKEN` 时 workflow 会**跳过 npm、保留 notice 并照常创建 Release**；补上 Secret 后重新推送同一个 tag（或手动运行 `publish` workflow）即可补发。
+> - 缺失 `NPM_TOKEN` 时 GitHub Release **仍会创建**（notes 取 CHANGELOG 对应版本），但 workflow 会**报错提醒**（不会静默跳过 npm）；补上 Secret 后手动运行 `publish` workflow 或重新运行 release workflow 即可补发。
 > - 版本已存在于 npm 时会自动跳过，不会重复发布。
 > - 手动备用：GitHub Actions → `publish` → Run workflow（同样需要 `NPM_TOKEN`）。
 

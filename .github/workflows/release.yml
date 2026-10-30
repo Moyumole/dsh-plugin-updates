@@ -1,10 +1,14 @@
 name: release
 
 # One-tag release: push a v* tag (after bumping package.json) and this workflow
-# verifies the tree, publishes the exact version to npm when it is not there yet
-# (requires the NPM_TOKEN repository secret), and creates the GitHub Release.
-# The npm step is skipped with a notice when NPM_TOKEN is absent, and the GitHub
-# Release is still created, so the two halves can be recovered independently.
+# verifies the tree, creates the GitHub Release from the matching CHANGELOG
+# section, and publishes the exact version to npm when it is not there yet.
+#
+# NPM_TOKEN is a one-time repository secret (granular token for @moyumole with
+# 2FA bypass). It is ordered AFTER the Release step on purpose: a missing token
+# fails this workflow loudly instead of silently skipping npm while the run
+# still shows green, and the Release is already created either way. Add the
+# secret once and future tag pushes publish both halves without manual steps.
 on:
   push:
     tags:
@@ -32,13 +36,36 @@ jobs:
         run: |
           echo "name=$(node -p "require('./package.json').name")" >> "$GITHUB_OUTPUT"
           echo "version=$(node -p "require('./package.json').version")" >> "$GITHUB_OUTPUT"
+      - name: Create the GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TAG="${GITHUB_REF_NAME}"
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            echo "release $TAG already exists; nothing to do"
+            exit 0
+          fi
+          VERSION="${TAG#v}"
+          NOTES=/tmp/release-notes.md
+          awk -v ver="$VERSION" '
+            /^## \[/ {
+              if (found) exit
+              if (index($0, "[" ver "]")) { found = 1 }
+            }
+            found { print }
+          ' CHANGELOG.md > "$NOTES"
+          if [ -s "$NOTES" ]; then
+            gh release create "$TAG" --title "$TAG" --notes-file "$NOTES" --verify-tag
+          else
+            gh release create "$TAG" --title "$TAG" --generate-notes --verify-tag
+          fi
       - name: Publish to npm when needed
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
           if [ -z "${NODE_AUTH_TOKEN:-}" ]; then
-            echo "::notice title=npm publish skipped::NPM_TOKEN secret is not configured; add it in Settings -> Secrets and variables -> Actions."
-            exit 0
+            echo "::error title=NPM_TOKEN missing::Add the NPM_TOKEN repository secret (Settings -> Secrets and variables -> Actions) so releases publish to npm. The GitHub Release was created; re-run this workflow after adding it."
+            exit 1
           fi
           NAME="${{ steps.pkg.outputs.name }}"
           VERSION="${{ steps.pkg.outputs.version }}"
@@ -48,13 +75,3 @@ jobs:
           fi
           npm publish --provenance --access public
           npm view "$NAME@$VERSION" version
-      - name: Create the GitHub Release
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          TAG="${GITHUB_REF_NAME}"
-          if gh release view "$TAG" >/dev/null 2>&1; then
-            echo "release $TAG already exists; nothing to do"
-          else
-            gh release create "$TAG" --title "$TAG" --generate-notes --verify-tag
-          fi
