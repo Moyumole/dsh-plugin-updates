@@ -147,22 +147,25 @@ node scripts/preview-rows.mjs 0.2.1-rc.3  # 用真实 profile + registry 打印�
 
 ## 发布（维护者）
 
+发版只做两步：**改版本号 → 打 tag 并 push**。tag 推送会触发 `release` workflow：跑测试与生成物校验 → 若该版本尚未在 npm 则 `npm publish --provenance`（需要仓库 Secret `NPM_TOKEN`）→ 自动创建 GitHub Release（使用 `--generate-notes`）。
+
 ```powershell
-# 1. 校验并打包
+# 1. 本地校验（可选，workflow 会再跑一遍）
 node scripts/build-client.mjs --check
 node --test test/*.test.mjs
-npm pack --dry-run          # 检查发布内容（当前 12 个文件 / ~39 KB）
 
-# 2. 登录并发布（Windows PowerShell 若报 npm.ps1 执行策略错误，就改用 npm.cmd）
-npm.cmd login
-npm.cmd publish             # prepublishOnly 会自动跑测试 + 生成物校验
+# 2. 改 package.json 的 version（和 CHANGELOG），提交
+git commit -am "release: vX.Y.Z"
+git push origin main
 
-# 3. 打 tag / 发 Release（Release 不会自动再次发布 npm；发布后再建 Release）
-git tag vX.Y.Z              # 用 package.json 里的版本
-git push origin main --tags
+# 3. 打 tag 并推送 —— 自动完成 npm 发布 + GitHub Release
+git tag vX.Y.Z
+git push origin vX.Y.Z
 ```
 
-> CI 发布是**手动**的：GitHub Actions → `publish` → Run workflow（需要仓库 Secret `NPM_TOKEN`）。它使用 `npm publish --provenance`，并且当该版本已存在时会提示并安全跳过，因此创建 Release 不会触发重复发布。
+> - 缺失 `NPM_TOKEN` 时 workflow 会**跳过 npm、保留 notice 并照常创建 Release**；补上 Secret 后重新推送同一个 tag（或手动运行 `publish` workflow）即可补发。
+> - 版本已存在于 npm 时会自动跳过，不会重复发布。
+> - 手动备用：GitHub Actions → `publish` → Run workflow（同样需要 `NPM_TOKEN`）。
 
 > **npm 账号开启 2FA 时**：`npm publish` 会返回 `E403 ... Two-factor authentication ... required to publish`。两种解决方式：
 > 1. 每次发布提供一次性验证码：`npm.cmd publish --otp=123456`；
@@ -174,7 +177,7 @@ git push origin main --tags
 >    ```
 >    //registry.npmjs.org/:_authToken=${NODE_AUTH_TOKEN}
 >    ```
->    GitHub Actions 发布则把同一个 token 配成仓库 Secret `NPM_TOKEN`。
+>    GitHub Actions 发布则把同一个 token 配成仓库 Secret `NPM_TOKEN`（**一次性配置**，之后发版无需人工操作）。
 
 发布后提交到社区插件市场（dsh-plugin.org）：仓库是公开的、根目录含 `package.json`、README 含安装命令，并给仓库加 **`dsh-plugin`** topic；再到 <https://dsh-plugin.org/submit> 按模板提 issue（类别填 UI & Experience）。收录后即可在 DSH 内置 Plugin Hub 里被搜索/一键安装。
 
