@@ -15,11 +15,11 @@
   - 右侧栏「开始 / Guide」→「插件更新」卡片（有可用更新时卡片和 tab 标题显示红点）
   - 「设置 → 插件」页顶部的「插件更新」标签（全局，无需打开会话）
   - 左侧栏「插件」图标右上角红点（点击仍进入「插件」页）
-- **检查**：页面加载时自动检查一次，也支持手动「刷新」；npm registry 结果缓存 10 分钟；只检查 `official !== true`、`availability === 'profile'`、`installed === true` 的第三方 bundle，并排除本插件自身
+- **检查**：页面加载时自动检查一次；**页面可见时每 30 分钟自动再检查一次**（切到后台暂停，回到前台若已过期立即补一次）；也支持手动「刷新」；npm registry 结果缓存 10 分钟；只检查 `official !== true`、`availability === 'profile'`、`installed === true` 的第三方 bundle，并排除本插件自身
 - **更新**：单个「更新」或「全部更新」；通过 DSH 官方插件管理器执行 `removeBundle` → `installBundle(name@latest, { enabled })`
 - **进度与提示**：更新时显示阶段文案（移除旧版 / 安装新版 / 应用 / 回滚）与进度条（单个为不确定进度，全部更新为 done/total）；结束时顶部居中弹出结果 toast（成功 / 失败 / 回滚 / 批量汇总，约 5-6 秒自动消失、可手动关闭）
 - **失败处理**：安装失败时尽力回滚到旧版本；回滚也失败时保留可关闭的错误提示，并重新读取真实安装状态，保证 UI 与磁盘一致
-- **不常驻**：无后台进程、无轮询定时器、无计划任务；不自动重启 DSH
+- **不常驻**：无后台进程、无服务、无计划任务；30 分钟定时器只在页面可见时存在（隐藏即清除）；不自动重启 DSH
 
 ## 类别与兼容性
 
@@ -95,7 +95,8 @@ dsh plugin --profile web add "<本机路径>/dsh-plugin-updates"
 
 在 Windows + DSH `0.2.1-rc.3` 上已完成真机验证：
 
-- [x] 页面加载后自动检查并显示结果；手动刷新、10 分钟缓存
+- [x] 页面加载后自动检查并显示结果；页面可见时每 30 分钟自动复查（隐藏暂停、回前台补查）；手动刷新、10 分钟缓存
+- [ ] 30 分钟自动复查的真机长时验证（调度策略由 `test/schedule.test.mjs` 单测覆盖）
 - [x] 正确识别第三方插件新版本（`dsh-better-sidebar`、`dsh-pet`、`dsh-context`、`dsh-whale-widget`）
 - [x] 真机更新：`dsh-pet 0.3.7→0.3.8`、`dsh-better-sidebar 0.28.1→0.28.2`、`dsh-whale-widget 0.4.1→0.4.2`，磁盘 `package.json` / `node_modules` / `pnpm-lock.yaml` 一致，其他插件未受影响
 - [x] 真机「全部更新」批量：`dsh-context 0.77.0→0.78.1` + `dsh-whale-widget 0.4.1→0.4.2`，批量进度（1/2→2/2）与顶部汇总 toast 正常
@@ -105,7 +106,7 @@ dsh plugin --profile web add "<本机路径>/dsh-plugin-updates"
 - [ ] 真机「安装失败 → 回滚」路径（当前由单元测试覆盖；故障注入对真实环境有破坏性，暂不做）
 - [ ] Linux / macOS、其他 DSH 版本
 
-自动化测试：`node --test test/*.test.mjs`（93 项，覆盖版本比较、兼容性、registry 回退/缓存/输入加固、行构建、controller 状态机与回滚、UI 渲染与样式约束、bundle 一致性）；CI 还会校验生成物与源码一致。
+自动化测试：`node --test test/*.test.mjs`（100 项，覆盖版本比较、兼容性、registry 回退/缓存/输入加固、行构建、controller 状态机与回滚、自动复查调度策略、UI 渲染与样式约束、bundle 一致性）；CI 还会校验生成物与源码一致。
 
 ## 已知限制
 
@@ -114,7 +115,7 @@ dsh plugin --profile web add "<本机路径>/dsh-plugin-updates"
 - 只支持 npm registry（官方源 + npmmirror 回退），不支持私有 registry。
 - 不检查、不更新 DSH 本体；不管理官方随附 bundle（`@deepseek-ai/*`）。
 - 不列出本插件自身（避免更新过程中面板消失）；如需更新本插件请用官方插件页。
-- 不自动重启 DSH；刷新页面后检查结果会重新获取（缓存仅保存在内存）。
+- 不自动重启 DSH；刷新页面后检查结果会重新获取（缓存仅保存在内存）。自动复查只在页面可见时进行，后台标签页不消耗资源。
 - 更新失败回滚依赖官方插件管理器对 `package.json` / lockfile 的恢复语义；回滚失败属于不可恢复场景，需要手动重装。
 
 ## 开发

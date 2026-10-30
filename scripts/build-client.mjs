@@ -29,6 +29,7 @@ const ORDER = [
   'compatibility.js',
   'registry.js',
   'rows.js',
+  'schedule.js',
   'ui.js',
   'controller.js',
   'entry.js',

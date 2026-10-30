@@ -58,8 +58,11 @@ mind. Specifically:
   (`name@version`) — no shell is involved.
 - The UI renders only React text/attributes; there is no `innerHTML`,
   `dangerouslySetInnerHTML`, `eval`, or `new Function` in the browser bundle.
-- The only long-lived timer is the toast auto-dismiss timeout; it is created and
-  cleared inside a React effect. There is no polling and no background process.
+- The only long-lived timer is the 30-minute auto-check; it exists only while the
+  document is visible (hiding the page clears it) and is removed with the plugin.
+  The toast auto-dismiss timeout is created per notification inside a React
+  effect. There is no background process and nothing polls while the page is
+  hidden.
 - Uninstalling the plugin removes every slot registration and lets the host's own
   Plugins icon resume.
 

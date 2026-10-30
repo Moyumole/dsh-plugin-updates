@@ -4,6 +4,19 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.2] - 2026-10-30
+
+### Added
+
+- Visible-page auto re-check: while the page is visible the panel re-checks every
+  30 minutes (hidden pages pause the timer; returning to the page catches up
+  immediately when the result is due, and a reconnect retries a failed check).
+  The scheduling policy lives in `lib/src/schedule.js` and is unit-tested.
+
+### Changed
+
+- README/SECURITY now describe the periodic check and its visibility behaviour.
+
 ## [0.2.1] - 2026-10-29
 
 First public release (`@moyumole/dsh-plugin-updates`).
