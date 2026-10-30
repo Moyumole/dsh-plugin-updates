@@ -239,6 +239,22 @@ test('a host without the plugin manager namespace fails with a stable error code
   assert.equal(snapshot.errorCode, 'no-manager')
 })
 
+test('the snapshot exposes the active locale so the UI can format dates', async () => {
+  const fake = fakeRemote(BASE_BUNDLES, {})
+  const controller = createController({
+    remote: () => fake.remote,
+    registry: fakeRegistry(BASE_ANSWERS),
+    getRuntimeVersion: () => '0.2.1-rc.3',
+    getLocaleId: () => 'zh-CN',
+    now: () => 1_700_000_000_000,
+  })
+
+  await controller.refresh()
+
+  const snapshot = controller.getSnapshot()
+  assert.equal(snapshot.localeId, 'zh-CN')
+})
+
 test('a host that removed installBundle reports the update as failed instead of throwing', async () => {
   const fake = fakeRemote(BASE_BUNDLES, {})
   delete fake.remote.pluginManager.installBundle

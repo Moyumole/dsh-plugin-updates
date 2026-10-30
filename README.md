@@ -20,6 +20,7 @@ Repository: <https://github.com/Moyumole/dsh-plugin-updates> · Security: [SECUR
 - **Progress and toasts**: phase text (removing / installing / applying / rollback) with a progress bar for single and batch updates; a top-center result toast (success / failure / rollback / batch) that dismisses itself and can be closed.
 - **Failure handling**: the previous version is restored on a best-effort basis; if the rollback also fails, a dismissible error remains and the real on-disk state is reloaded so the UI matches the profile.
 - **No background process, service or scheduled task**: the 30-minute timer only exists while the page is visible; DSH is never restarted automatically.
+- **Languages**: follows the DSH interface language automatically — Chinese when the host locale starts with `zh`, English otherwise. Panel copy, card/tab labels, toasts and the "last checked" time format re-localize when the language changes.
 
 ### Category and compatibility
 
@@ -49,7 +50,7 @@ Or enter the package name `@moyumole/dsh-plugin-updates` in "Settings → Plugin
 **From GitHub (pinned)**
 
 ```powershell
-dsh plugin --profile web add "github:Moyumole/dsh-plugin-updates#v0.2.5"
+dsh plugin --profile web add "github:Moyumole/dsh-plugin-updates#v0.2.6"
 ```
 
 The repository root is the plugin directory and `lib/client.js` is committed, so installing it does not require a build.
@@ -206,6 +207,7 @@ MIT
 - **进度与提示**：更新时显示阶段文案（移除旧版 / 安装新版 / 应用 / 回滚）与进度条（单个为不确定进度，全部更新为 done/total）；结束时顶部居中弹出结果 toast（成功 / 失败 / 回滚 / 批量汇总，自动消失、可手动关闭）
 - **失败处理**：安装失败时尽力回滚到旧版本；回滚也失败时保留可关闭的错误提示，并重新读取真实安装状态，保证 UI 与磁盘一致
 - **不常驻**：无后台进程、无服务、无计划任务；30 分钟定时器只在页面可见时存在（隐藏即清除）；不自动重启 DSH
+- **多语言**：自动跟随 DSH 界面语言——宿主 locale 以 `zh` 开头时显示中文，否则英文；切换语言后界面文案、卡片/标签、toast 以及「上次检查」的时间格式都会即时更新
 
 ### 类别与兼容性
 
@@ -235,7 +237,7 @@ dsh plugin --profile web add "@moyumole/dsh-plugin-updates"
 **从 GitHub 安装（锁版本）**
 
 ```powershell
-dsh plugin --profile web add "github:Moyumole/dsh-plugin-updates#v0.2.5"
+dsh plugin --profile web add "github:Moyumole/dsh-plugin-updates#v0.2.6"
 ```
 
 仓库根目录就是插件目录，`lib/client.js` 已随仓库提交，安装时**不需要构建**。

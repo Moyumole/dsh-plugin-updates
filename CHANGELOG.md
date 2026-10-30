@@ -7,6 +7,22 @@ All notable changes to this project are documented here. The format follows
 Each release lists the changes in English first, then in Chinese.  
 每个版本的变更先列英文、再列中文。
 
+## [0.2.6] - 2026-10-30
+
+### Added
+
+- The "last checked" timestamp now formats with the DSH interface locale instead
+  of the operating-system locale, so the panel stays consistent in Chinese and
+  English.
+- README documents that the whole UI follows the DSH language automatically:
+  Chinese for host locales starting with `zh`, English otherwise; panel copy,
+  card/tab labels, toasts and the timestamp re-localize when the language changes.
+
+### 新增
+
+- 「上次检查」时间改用 DSH 界面语言格式化（不再依赖系统 locale），中文/英文界面保持一致。
+- README 说明整个界面会自动跟随 DSH 语言：宿主 locale 以 `zh` 开头显示中文，其余英文；切换语言后文案、卡片/标签、toast 与时间格式即时更新。
+
 ## [0.2.5] - 2026-10-30
 
 ### Added
