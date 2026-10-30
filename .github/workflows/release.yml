@@ -61,27 +61,41 @@ jobs:
           fi
       - name: Upgrade npm for Trusted Publishing
         run: |
-          npm install -g npm@latest
+          npm install -g npm@12.2.1
           npm --version
       - name: Publish to npm when needed (Trusted Publishing / OIDC)
         run: |
           NAME="${{ steps.pkg.outputs.name }}"
           VERSION="${{ steps.pkg.outputs.version }}"
-          if npm view "$NAME@$VERSION" version >/dev/null 2>&1; then
+          # Query the registry API directly: `npm view` adds another cache layer,
+          # and the CDN in front of registry.npmjs.org can serve a stale packument
+          # for several minutes after a successful publish.
+          registry_has_version() {
+            node -e '
+              const [name, version] = process.argv.slice(1)
+              const path = name.replace("/", "%2F")
+              const url = `https://registry.npmjs.org/${path}/${version}?ts=${Date.now()}`
+              fetch(url, { headers: { 'cache-control': 'no-cache' } })
+                .then((response) => process.exit(response.ok ? 0 : 1))
+                .catch(() => process.exit(1))
+            ' "$NAME" "$VERSION"
+          }
+          if registry_has_version; then
             echo "::notice title=npm publish skipped::$NAME@$VERSION is already published."
             exit 0
           fi
           npm publish --provenance --access public
-          # The registry API can lag behind a successful publish (the same
-          # version often 404s for a few minutes), so verify with retries
-          # instead of failing the whole release on that race.
-          for attempt in $(seq 1 12); do
-            if npm view "$NAME@$VERSION" version >/dev/null 2>&1; then
+          # The version can take a while to become visible through the CDN (a
+          # publish that returned success once showed up ~20 minutes later), so
+          # the check is advisory: a slow CDN must not mark a successful release
+          # as failed.
+          for attempt in $(seq 1 40); do
+            if registry_has_version; then
               echo "verified $NAME@$VERSION on the registry"
               exit 0
             fi
-            echo "registry propagation pending ($attempt/12); retrying in 15s"
-            sleep 15
+            echo "registry propagation pending ($attempt/40); retrying in 30s"
+            sleep 30
           done
-          echo "::error title=verification failed::$NAME@$VERSION was published but did not become visible on the registry within 3 minutes."
-          exit 1
+          echo "::warning title=npm verification pending::$NAME@$VERSION was published (npm publish succeeded) but is not visible through the registry CDN yet. Check https://www.npmjs.com/package/$NAME before assuming a failure."
+
