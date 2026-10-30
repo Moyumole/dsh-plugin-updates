@@ -1,0 +1,14 @@
+version: 2
+
+# Keep the GitHub Actions used by the workflows current. The package itself has
+# no runtime or development dependencies, so there is nothing else to update.
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: ci
+    labels:
+      - dependencies
