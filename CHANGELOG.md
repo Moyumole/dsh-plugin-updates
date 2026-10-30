@@ -7,6 +7,18 @@ All notable changes to this project are documented here. The format follows
 Each release lists the changes in English first, then in Chinese.  
 每个版本的变更先列英文、再列中文。
 
+## [0.2.5] - 2026-10-30
+
+### Added
+
+- Documentation screenshots: the Plugins-page "Plugin updates" tab, the
+  right-sidebar Guide card, and the left-sidebar badge are embedded in the README
+  (hosted from the repository, so they also render on the npm page).
+
+### 新增
+
+- 文档截图：README 增加「插件页插件更新标签」「右侧栏 Guide 卡片」「左侧栏红点」三张截图（图片托管在仓库，npm 页面也会显示）。
+
 ## [0.2.4] - 2026-10-30
 
 ### Added

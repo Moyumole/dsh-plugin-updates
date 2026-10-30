@@ -49,7 +49,7 @@ Or enter the package name `@moyumole/dsh-plugin-updates` in "Settings → Plugin
 **From GitHub (pinned)**
 
 ```powershell
-dsh plugin --profile web add "github:Moyumole/dsh-plugin-updates#v0.2.4"
+dsh plugin --profile web add "github:Moyumole/dsh-plugin-updates#v0.2.5"
 ```
 
 The repository root is the plugin directory and `lib/client.js` is committed, so installing it does not require a build.
@@ -78,7 +78,19 @@ Update flow: `removeBundle(name)` → `installBundle(name@latest, { enabled })`.
 
 ### Screenshot
 
-To be added (the maintainer will capture it on a **clean test profile**: panel list, top toast, right-sidebar Guide card). Screenshots must not contain personal plugin lists, session titles or local paths.
+![Plugin updates tab on the Plugins page](https://raw.githubusercontent.com/Moyumole/dsh-plugin-updates/main/docs/screenshots/panel.png)
+
+*The "Plugin updates" tab on the Plugins page. Every bundle is up to date in this capture; when newer versions exist the badge, the "Update" buttons and "Update all" appear.*
+
+![Right-sidebar Guide card](https://raw.githubusercontent.com/Moyumole/dsh-plugin-updates/main/docs/screenshots/guide-card.png)
+
+*The right-sidebar Start/Guide card; an update badge appears on it when updates are available.*
+
+![Left-sidebar Plugins badge](https://raw.githubusercontent.com/Moyumole/dsh-plugin-updates/main/docs/screenshots/left-sidebar.png)
+
+*The left-sidebar "Plugins" icon keeps the host's own icon and adds a red dot while updates are pending.*
+
+Screenshots are taken on a clean test profile and contain no session titles, personal plugin lists or local paths.
 
 ### Permissions and external services
 
@@ -223,7 +235,7 @@ dsh plugin --profile web add "@moyumole/dsh-plugin-updates"
 **从 GitHub 安装（锁版本）**
 
 ```powershell
-dsh plugin --profile web add "github:Moyumole/dsh-plugin-updates#v0.2.4"
+dsh plugin --profile web add "github:Moyumole/dsh-plugin-updates#v0.2.5"
 ```
 
 仓库根目录就是插件目录，`lib/client.js` 已随仓库提交，安装时**不需要构建**。
@@ -254,7 +266,19 @@ dsh plugin --profile web add "<本机路径>/dsh-plugin-updates"
 
 ### 截图
 
-待补充（维护者计划用**干净的测试 profile** 截取：面板列表、顶部 toast、右侧栏 Guide 卡片）。截图不得包含个人插件列表、会话标题或本机路径。
+![插件页的「插件更新」标签](https://raw.githubusercontent.com/Moyumole/dsh-plugin-updates/main/docs/screenshots/panel.png)
+
+*「设置 → 插件」页的「插件更新」标签。此截图里全部插件都是最新；有可用更新时会显示红点、「更新」与「全部更新」按钮。*
+
+![右侧栏 Guide 卡片](https://raw.githubusercontent.com/Moyumole/dsh-plugin-updates/main/docs/screenshots/guide-card.png)
+
+*右侧栏「开始 / Guide」里的卡片；有可用更新时卡片上会出现红点。*
+
+![左侧栏插件图标红点](https://raw.githubusercontent.com/Moyumole/dsh-plugin-updates/main/docs/screenshots/left-sidebar.png)
+
+*左侧栏「插件」图标保留宿主原图标，有更新时右上角显示红点。*
+
+截图使用干净的测试 profile，不包含会话标题、个人插件列表或本机路径。
 
 ### 权限与外部服务
 
