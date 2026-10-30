@@ -72,4 +72,16 @@ jobs:
             exit 0
           fi
           npm publish --provenance --access public
-          npm view "$NAME@$VERSION" version
+          # The registry API can lag behind a successful publish (the same
+          # version often 404s for a few minutes), so verify with retries
+          # instead of failing the whole release on that race.
+          for attempt in $(seq 1 12); do
+            if npm view "$NAME@$VERSION" version >/dev/null 2>&1; then
+              echo "verified $NAME@$VERSION on the registry"
+              exit 0
+            fi
+            echo "registry propagation pending ($attempt/12); retrying in 15s"
+            sleep 15
+          done
+          echo "::error title=verification failed::$NAME@$VERSION was published but did not become visible on the registry within 3 minutes."
+          exit 1
