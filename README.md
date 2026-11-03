@@ -51,7 +51,7 @@ Or enter the package name `@moyumole/dsh-plugin-updates` in "Settings → Plugin
 **From GitHub (pinned)**
 
 ```powershell
-dsh plugin --profile web add "github:Moyumole/dsh-plugin-updates#v0.3.0"
+dsh plugin --profile web add "github:Moyumole/dsh-plugin-updates#v0.3.1"
 ```
 
 The repository root is the plugin directory and `lib/client.js` is committed, so installing it does not require a build.
@@ -241,7 +241,7 @@ dsh plugin --profile web add "@moyumole/dsh-plugin-updates"
 **从 GitHub 安装（锁版本）**
 
 ```powershell
-dsh plugin --profile web add "github:Moyumole/dsh-plugin-updates#v0.3.0"
+dsh plugin --profile web add "github:Moyumole/dsh-plugin-updates#v0.3.1"
 ```
 
 仓库根目录就是插件目录，`lib/client.js` 已随仓库提交，安装时**不需要构建**。

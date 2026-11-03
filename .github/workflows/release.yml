@@ -60,7 +60,9 @@ jobs:
               # shellcheck disable=SC2086
               gh release edit "$TAG" --draft=false --title "$TAG" $NOTES_ARGS
             else
-              echo "release $TAG is already published; nothing to do"
+              echo "release $TAG is already published; refreshing its notes"
+              # shellcheck disable=SC2086
+              gh release edit "$TAG" --title "$TAG" $NOTES_ARGS
             fi
             exit 0
           fi

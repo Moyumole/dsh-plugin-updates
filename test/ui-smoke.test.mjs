@@ -691,19 +691,21 @@ test('UpdateGlyph: original circular-arrow SVG painted with currentColor', () =>
   assert.equal(fallback.props.width, 16)
 })
 
-test('left sidebar icon: host pinwheel plus a dot only while updates are pending', () => {
+test('left sidebar icon: host pinwheel plus a hidden dot until updates are pending', () => {
   installController(makeSnapshot({ updateCount: 0 }))
   const idle = ui.LeftSidebarPluginsIcon({ size: 18, active: true })
   assert.equal(hasClass(idle, 'dshu-rail'), true)
   const idleElements = descendants(idle, [])
-  assert.equal(idleElements.filter((element) => hasClass(element, 'dshu-rail-dot')).length, 0)
+  const idleDot = idleElements.find((element) => hasClass(element, 'dshu-rail-dot'))
+  assert.ok(idleDot, 'the dot is always mounted so the imperative fallback can reveal it')
+  assert.equal(idleDot.props.style.display, 'none')
   assert.equal(idleElements.filter((element) => element.type === 'svg').length, 1)
 
   installController(makeSnapshot({ updateCount: 2 }))
   const pending = ui.LeftSidebarPluginsIcon({ size: 18, active: false })
   const dot = descendants(pending, []).find((element) => hasClass(element, 'dshu-rail-dot'))
   assert.ok(dot, 'a pending update draws the dot')
-  assert.equal(dot.props['data-update-count'], undefined)
+  assert.equal(dot.props.style, undefined, 'a pending dot is visible')
   assert.equal(hasClass(pending, 'dshu-rail'), true)
   assert.equal(pending.props['data-update-count'], '2')
 })

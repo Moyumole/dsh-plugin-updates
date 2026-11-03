@@ -7,6 +7,23 @@ All notable changes to this project are documented here. The format follows
 Each release lists the changes in English first, then in Chinese.  
 每个版本的变更先列英文、再列中文。
 
+## [0.3.1] - 2026-11-03
+
+### Fixed
+
+- The left-sidebar update dot now appears as soon as a check finds updates,
+  without waiting for the sidebar tree to re-render (for example opening the
+  Plugins page first). The rail badge is synced directly from every controller
+  snapshot; the external-store subscription also rebinds when the controller is
+  wired or replaced.
+- Release notes are refreshed for an already-published GitHub Release instead of
+  being skipped when a tag is re-run.
+
+### 修复
+
+- 左侧栏更新红点现在会在检查到更新后立即出现，不必先点进插件页触发侧栏重渲染。红点改为直接跟随每次 controller 快照同步；外部 store 订阅也会在 controller 接入/替换时重新绑定。
+- 重跑 tag 时，已发布的 GitHub Release 说明会被刷新，而不是直接跳过。
+
 ## [0.3.0] - 2026-11-03
 
 ### Added
