@@ -36,15 +36,11 @@ jobs:
         run: |
           echo "name=$(node -p "require('./package.json').name")" >> "$GITHUB_OUTPUT"
           echo "version=$(node -p "require('./package.json').version")" >> "$GITHUB_OUTPUT"
-      - name: Create the GitHub Release
+      - name: Create or publish the GitHub Release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           TAG="${GITHUB_REF_NAME}"
-          if gh release view "$TAG" >/dev/null 2>&1; then
-            echo "release $TAG already exists; nothing to do"
-            exit 0
-          fi
           VERSION="${TAG#v}"
           NOTES=/tmp/release-notes.md
           awk -v ver="$VERSION" '
@@ -54,11 +50,22 @@ jobs:
             }
             found { print }
           ' CHANGELOG.md > "$NOTES"
+          NOTES_ARGS="--generate-notes"
           if [ -s "$NOTES" ]; then
-            gh release create "$TAG" --title "$TAG" --notes-file "$NOTES" --verify-tag
-          else
-            gh release create "$TAG" --title "$TAG" --generate-notes --verify-tag
+            NOTES_ARGS="--notes-file $NOTES"
           fi
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            if [ "$(gh release view "$TAG" --json isDraft -q .isDraft)" = "true" ]; then
+              echo "release $TAG exists as a draft; publishing it"
+              # shellcheck disable=SC2086
+              gh release edit "$TAG" --draft=false --title "$TAG" $NOTES_ARGS
+            else
+              echo "release $TAG is already published; nothing to do"
+            fi
+            exit 0
+          fi
+          # shellcheck disable=SC2086
+          gh release create "$TAG" --title "$TAG" $NOTES_ARGS --verify-tag
       - name: Upgrade npm for Trusted Publishing
         run: |
           npm install -g npm@12.2.1

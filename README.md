@@ -16,6 +16,7 @@ Repository: <https://github.com/Moyumole/dsh-plugin-updates> · Security: [SECUR
   - Plugins page → "Plugin updates" tab (global, no open Session required)
   - Left-sidebar "Plugins" icon badge (clicking it still opens the Plugins page)
 - **Checks**: once on page load; while the page is visible it re-checks every 30 minutes (hidden pages pause the timer and catch up on return), plus manual refresh. Registry answers are cached for 10 minutes. Only third-party bundles are checked (`official !== true`, `availability === 'profile'`, `installed === true`), excluding this plugin itself.
+- **All profiles (read-only)**: a section lists the third-party plugins of the other DSH profiles on this machine with the same update status logic. It is informational only — those profiles are never changed from here; open that profile's window or use `dsh plugin --profile <name> ...` to act on them.
 - **Updates**: "Update" for one bundle or "Update all", both through the official plugin manager (`removeBundle` → `installBundle(name@latest, { enabled })`).
 - **Progress and toasts**: phase text (removing / installing / applying / rollback) with a progress bar for single and batch updates; a top-center result toast (success / failure / rollback / batch) that dismisses itself and can be closed.
 - **Failure handling**: the previous version is restored on a best-effort basis; if the rollback also fails, a dismissible error remains and the real on-disk state is reloaded so the UI matches the profile.
@@ -26,8 +27,8 @@ Repository: <https://github.com/Moyumole/dsh-plugin-updates> · Security: [SECUR
 
 - **Category**: UI & Experience (plugin management)
 - **Verified on**: DSH `0.2.1-rc.3` (Windows Desktop)
-- **Plugin line**: `0.2.x`
-- **Profiles**: `desktop` and `web` (examples use `--profile web`; replace with your profile name)
+- **Plugin line**: `0.3.x`
+- **Profiles**: `desktop` and `web` (examples use `--profile web`; replace with your profile name). Profiles are data directories: the DSH version comes from the running app/runtime, so all profiles opened by the same installation share one version.
 
 | DSH version | Status |
 |---|---|
@@ -50,7 +51,7 @@ Or enter the package name `@moyumole/dsh-plugin-updates` in "Settings → Plugin
 **From GitHub (pinned)**
 
 ```powershell
-dsh plugin --profile web add "github:Moyumole/dsh-plugin-updates#v0.2.6"
+dsh plugin --profile web add "github:Moyumole/dsh-plugin-updates#v0.3.0"
 ```
 
 The repository root is the plugin directory and `lib/client.js` is committed, so installing it does not require a build.
@@ -95,7 +96,7 @@ Screenshots are taken on a clean test profile and contain no session titles, per
 
 ### Permissions and external services
 
-- **Permissions**: none requested from DSH; the Host half is empty and only the browser half registers UI
+- **Permissions**: no DSH permission is requested. The browser half only registers UI. The Host half reads `<DSH_HOME>/profiles/*/package.json` and the installed versions under each profile's `node_modules`, and exposes that inventory as a read-only JSON route (`/plugin-updates/profiles`) on the local web server. It never writes to a profile, never installs or removes anything, and the payload contains only profile names plus third-party package names/versions (no paths, credentials or session data)
 - **External services**: read-only npm registry requests (`registry.npmjs.org`, falling back to `registry.npmmirror.com`) for `<name>/latest`; the only data sent is the package name of installed third-party bundles
 - **Local operations**: updates are executed by the official DSH plugin manager; this plugin does not run shell commands or write files itself
 - **Telemetry**: none
@@ -116,10 +117,12 @@ Verified on Windows + DSH `0.2.1-rc.3`:
 - [ ] Real "install failure → rollback" path (covered by unit tests; fault injection would be destructive on a real profile)
 - [ ] Linux / macOS and other DSH versions
 
-Automated checks: `node --test test/*.test.mjs` (102 tests: SemVer, compatibility, registry fallback/cache/input hardening, row building, controller state machine and rollback, host-capability failures, auto-check scheduling policy, UI rendering and style constraints, bundle consistency). CI also verifies the committed bundle matches its sources.
+Automated checks: `node --test test/*.test.mjs` (116 tests: SemVer, compatibility, registry fallback/cache/input hardening, row building, controller state machine and rollback, host-capability failures, auto-check scheduling policy, cross-profile inventory and route, UI rendering and style constraints, bundle consistency). CI also verifies the committed bundle matches its sources.
 
 ### Known limitations
 
+- The "All profiles" section is read-only: it reports the other profiles' plugin versions, but updates must be performed in that profile's own window (or with `dsh plugin --profile <name> ...`).
+- The DSH version is tied to the running installation, not to a profile: profiles opened by the same DSH app share one version; profiles opened by a different install (for example the npm CLI) can differ.
 - The right sidebar is a per-Session column: with no Session open, use "Settings → Plugins → Plugin updates".
 - If the host removes or renames a Remote method (for example `installBundle`), the panel shows a localized "plugin manager is not available" banner and updates fail on that row instead of throwing an obscure error.
 - The left-sidebar badge shadows the host's "Plugins" icon cell (`sidebar.panellist`, `priority: -1`); a host redesign may require a visual sync, but functionality is unaffected.
@@ -143,7 +146,7 @@ The browser half is a generated single file because DSH loads exactly one `./cli
 
 | File | Responsibility |
 |---|---|
-| `lib/index.js` | Host half: empty `apply()`, only a bundle mount point |
+| `lib/index.js` | Host half: read-only scan of the other profiles, served as `GET /plugin-updates/profiles` |
 | `lib/src/entry.js` | Slot registration and wiring (right-sidebar tab / Guide card / Plugins tab / left badge / toast / visible-page timer) |
 | `lib/src/schedule.js` | Pure auto-check scheduling policy (30 minutes, skip while busy) |
 | `lib/src/controller.js` | Panel state machine, Remote calls, rollback, progress and toasts |
@@ -203,6 +206,7 @@ MIT
   - 「设置 → 插件」页顶部的「插件更新」标签（全局，无需打开会话）
   - 左侧栏「插件」图标右上角红点（点击仍进入「插件」页）
 - **检查**：页面加载时自动检查一次；**页面可见时每 30 分钟自动再检查一次**（切到后台暂停，回到前台若已过期立即补一次）；也支持手动「刷新」；npm registry 结果缓存 10 分钟；只检查 `official !== true`、`availability === 'profile'`、`installed === true` 的第三方 bundle，并排除本插件自身
+- **所有 Profile（只读）**：面板下方列出本机其他 profile 的第三方插件更新状况（复用同一套状态判断）。这里**只展示、不修改**；要更新请打开对应 profile 的窗口，或用 `dsh plugin --profile <name> ...`。
 - **更新**：单个「更新」或「全部更新」；通过 DSH 官方插件管理器执行 `removeBundle` → `installBundle(name@latest, { enabled })`
 - **进度与提示**：更新时显示阶段文案（移除旧版 / 安装新版 / 应用 / 回滚）与进度条（单个为不确定进度，全部更新为 done/total）；结束时顶部居中弹出结果 toast（成功 / 失败 / 回滚 / 批量汇总，自动消失、可手动关闭）
 - **失败处理**：安装失败时尽力回滚到旧版本；回滚也失败时保留可关闭的错误提示，并重新读取真实安装状态，保证 UI 与磁盘一致
@@ -213,8 +217,8 @@ MIT
 
 - **类别**：UI & Experience（面向插件管理）
 - **验证目标**：DSH `0.2.1-rc.3`（Windows Desktop）
-- **插件版本**：`0.2.x`
-- **支持的 profile**：`desktop` / `web` 均可（示例命令用 `--profile web`，按你的 profile 名替换）
+- **插件版本**：`0.3.x`
+- **支持的 profile**：`desktop` / `web` 均可（示例命令用 `--profile web`，按你的 profile 名替换）。profile 只是数据目录，DSH 版本来自运行中的应用/运行时，因此同一安装打开的所有 profile 共享同一个 DSH 版本。
 
 | DSH 版本 | 状态 |
 |---|---|
@@ -237,7 +241,7 @@ dsh plugin --profile web add "@moyumole/dsh-plugin-updates"
 **从 GitHub 安装（锁版本）**
 
 ```powershell
-dsh plugin --profile web add "github:Moyumole/dsh-plugin-updates#v0.2.6"
+dsh plugin --profile web add "github:Moyumole/dsh-plugin-updates#v0.3.0"
 ```
 
 仓库根目录就是插件目录，`lib/client.js` 已随仓库提交，安装时**不需要构建**。
@@ -284,7 +288,7 @@ dsh plugin --profile web add "<本机路径>/dsh-plugin-updates"
 
 ### 权限与外部服务
 
-- **权限**：不申请任何 DSH 权限；Host 半边为空，仅浏览器半边注册 UI
+- **权限**：不申请任何 DSH 权限；浏览器半边只注册 UI。Host 半边读取 `<DSH_HOME>/profiles/*/package.json` 及各 profile `node_modules` 里已安装的版本，并通过本地 Web 服务器暴露只读 JSON 路由（`/plugin-updates/profiles`）；不写 profile、不安装/卸载任何东西，返回内容只有 profile 名 + 第三方包名/版本（不含路径、凭据或会话数据）
 - **外部服务**：仅读取 npm registry（`registry.npmjs.org`，失败回退 `registry.npmmirror.com`）的 `<name>/latest`；只发送已安装第三方插件的包名
 - **本地操作**：更新经由 DSH 官方插件管理器执行；本插件不直接执行 shell、不写文件
 - **遥测**：无
@@ -305,10 +309,12 @@ dsh plugin --profile web add "<本机路径>/dsh-plugin-updates"
 - [ ] 真机「安装失败 → 回滚」路径（当前由单元测试覆盖；故障注入对真实环境有破坏性，暂不做）
 - [ ] Linux / macOS、其他 DSH 版本
 
-自动化测试：`node --test test/*.test.mjs`（102 项，覆盖版本比较、兼容性、registry 回退/缓存/输入加固、行构建、controller 状态机与回滚、宿主能力缺失、自动复查调度策略、UI 渲染与样式约束、bundle 一致性）；CI 还会校验生成物与源码一致。
+自动化测试：`node --test test/*.test.mjs`（116 项，覆盖版本比较、兼容性、registry 回退/缓存/输入加固、行构建、controller 状态机与回滚、宿主能力缺失、自动复查调度策略、跨 profile 清点与路由、UI 渲染与样式约束、bundle 一致性）；CI 还会校验生成物与源码一致。
 
 ### 已知限制
 
+- 「所有 Profile」区块是只读的：只报告其他 profile 的插件版本，更新必须在对应 profile 的窗口中完成（或使用 `dsh plugin --profile <name> ...`）。
+- DSH 版本取决于运行中的应用/运行时，而不是 profile：同一 DSH 安装打开的 profile 共享一个版本；由不同安装（例如 npm 版 CLI）打开的 profile 可能不同。
 - 右侧栏是按会话存在的列：没有打开会话时请用「设置 → 插件 → 插件更新」。
 - 若宿主删除或重命名了 Remote 方法（例如 `installBundle`），面板会显示本地化的「插件管理器不可用」错误横幅，更新会按失败处理，而不是抛出难以理解的异常。
 - 左侧栏红点通过遮蔽宿主「插件」图标单元实现（`sidebar.panellist` 的 `plugins` 单元，`priority: -1`）；宿主大改该图标时外观需要同步，功能不受影响。
@@ -334,7 +340,7 @@ node scripts/preview-rows.mjs 0.2.1-rc.3  # 用真实 profile + registry 打印�
 
 | 文件 | 职责 |
 |---|---|
-| `lib/index.js` | Host 半边：空 `apply()`，只作为 bundle 挂载点 |
+| `lib/index.js` | Host 半边：只读扫描其他 profile，并以 `GET /plugin-updates/profiles` 提供 JSON |
 | `lib/src/entry.js` | 槽注册与接线（右侧栏 tab / Guide 卡片 / 插件页 tab / 左侧栏红点 / toast / 可见页定时器） |
 | `lib/src/schedule.js` | 纯自动复查调度策略（30 分钟、忙时跳过） |
 | `lib/src/controller.js` | 面板状态机、Remote 调用、回滚、进度与 toast |

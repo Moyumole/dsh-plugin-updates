@@ -55,6 +55,12 @@ const REQUIRED_KEYS = [
   'error.noManager',
   'error.noRemote',
   'notice.dismiss',
+  'profiles.title',
+  'profiles.readOnly',
+  'profiles.loading',
+  'profiles.failed',
+  'profiles.upToDate',
+  'profiles.updates',
   'progress.removing',
   'progress.installing',
   'progress.applying',
@@ -169,6 +175,9 @@ function makeSnapshot(overrides) {
       batch: null,
       toast: null,
       notices: [],
+      profiles: [],
+      profilesPhase: 'idle',
+      profilesError: null,
     },
     overrides,
   )
@@ -750,6 +759,40 @@ test('toast: a batch summary renders counts and the failure tone', () => {
 
   installController(makeSnapshot({ toast: null }))
   assert.equal(ui.UpdateToast({ t: tFrom(DICTS.en) }), null)
+})
+
+test('panel: other profiles render as a read-only list without update actions', () => {
+  const mounted = mountPanel({
+    profilesPhase: 'ready',
+    profiles: [
+      {
+        name: 'dafuyu',
+        updateCount: 1,
+        incompatibleCount: 0,
+        failedCount: 0,
+        rows: [
+          { name: 'dsh-meme', title: 'dsh-meme', status: 'update', currentVersion: '0.1.70', latestVersion: '0.1.71' },
+          { name: 'dsh-voice', title: 'dsh-voice', status: 'latest', currentVersion: '0.5.4', latestVersion: '0.5.4' },
+        ],
+      },
+    ],
+  })
+
+  includes(mounted.text, 'Other profiles')
+  includes(mounted.text, 'read-only')
+  includes(mounted.text, 'dafuyu')
+  includes(mounted.text, '1 update(s)')
+  includes(mounted.text, 'dsh-meme 0.1.70 → 0.1.71')
+  assert.equal(mounted.text.indexOf('dsh-voice 0.5.4'), -1, 'up-to-date rows stay compact')
+  assert.equal(findButton(mounted.tree, (button) => labelOf(button) === DICTS.en['row.update']), undefined)
+})
+
+test('panel: a failed other-profiles read stays local', () => {
+  const mounted = mountPanel({ profilesPhase: 'failed', profilesError: 'HTTP 404' })
+
+  includes(mounted.text, 'Other profiles')
+  includes(mounted.text, DICTS.en['profiles.failed'])
+  includes(mounted.text, DICTS.en['panel.noPlugins'])
 })
 
 test('GuideCard: reads the tab hook during render and falls back to the injected opener', () => {

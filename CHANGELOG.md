@@ -7,6 +7,32 @@ All notable changes to this project are documented here. The format follows
 Each release lists the changes in English first, then in Chinese.  
 每个版本的变更先列英文、再列中文。
 
+## [0.3.0] - 2026-11-03
+
+### Added
+
+- Read-only "All profiles" overview: the panel lists the third-party plugins of
+  the other DSH profiles on this machine, with the same update-status logic as the
+  main list (current profile excluded, empty profiles hidden). It is informational
+  only — those profiles are never modified from this plugin.
+- The Host half now serves `GET /plugin-updates/profiles`: it reads each profile's
+  `package.json` and installed versions under that profile's `node_modules`. The
+  route is GET-only, `no-store`, and returns names/versions only (no paths).
+
+### Changed
+
+- The Host half is no longer empty; the panel still performs updates exclusively in
+  the running profile through the official plugin manager.
+
+### 新增
+
+- 只读的「所有 Profile」总览：面板列出本机其他 DSH profile 的第三方插件，并复用主列表的更新状态判断（排除当前 profile、隐藏没有插件的 profile）。仅展示，**不会修改**其他 profile。
+- Host 半边开始提供 `GET /plugin-updates/profiles`：读取各 profile 的 `package.json` 与各自 `node_modules` 中的已安装版本。该路由只接受 GET、`no-store`，仅返回包名/版本（不含路径）。
+
+### 变更
+
+- Host 半边不再为空；面板仍只通过官方插件管理器更新**当前运行 profile**。
+
 ## [0.2.6] - 2026-10-30
 
 ### Added

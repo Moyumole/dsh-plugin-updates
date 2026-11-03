@@ -30,6 +30,7 @@ const ORDER = [
   'registry.js',
   'rows.js',
   'schedule.js',
+  'profiles.js',
   'ui.js',
   'controller.js',
   'entry.js',

@@ -14,8 +14,14 @@
 DSH host process and inside the DSH Web page, so review it with that trust model in
 mind. Specifically:
 
-- **Host half** (`lib/index.js`): empty `apply()`. No services, files, processes,
-  timers or network access.
+- **Host half** (`lib/index.js`): registers exactly one read-only route,
+  `GET /plugin-updates/profiles`, on the local web server. To build the response it
+  reads `<DSH_HOME>/profiles/*/package.json` and the installed versions under each
+  profile's `node_modules`; it never writes to a profile, never installs/removes
+  packages, never spawns processes and never touches network or credentials. The
+  response contains the profile names (including the current one, so the client can
+  exclude it) plus third-party package names and versions — no filesystem paths,
+  tokens or session data.
 - **Browser half** (`lib/client.js`): registers UI through the host's slots
   (right-sidebar tab + Guide card, a `plugins.tab` entry, a shadow of the
   left-sidebar "Plugins" icon cell, and a `shell.overlay` toast), and calls only
