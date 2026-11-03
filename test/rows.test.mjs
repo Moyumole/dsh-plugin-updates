@@ -2,6 +2,7 @@ import test from 'node:test'
 import assert from 'node:assert/strict'
 
 import {
+  LARGE_UPDATE_BYTES,
   STATUS,
   buildRows,
   isRegistrySource,
@@ -185,6 +186,33 @@ test('a missing manifest without an error is reported as a failed check', () => 
   assert.equal(result.rows[0].status, STATUS.failed)
   assert.equal(result.rows[0].latestVersion, null)
   assert.equal(result.failedCount, 1)
+})
+
+test('buildRows marks updates larger than the threshold and exposes their size', () => {
+  const result = buildRows({
+    bundles: [
+      bundle({ name: 'dsh-pet', version: '0.3.7', source: 'dsh-pet@^0.3.7' }),
+      bundle({ name: 'dsh-context', version: '0.77.0', source: 'dsh-context@^0.77.0' }),
+    ],
+    manifests: {
+      'dsh-pet': { name: 'dsh-pet', version: '0.3.8', dist: { unpackedSize: 80 * 1024 * 1024 } },
+      'dsh-context': { name: 'dsh-context', version: '0.78.1', dist: { unpackedSize: 1024 * 1024 } },
+    },
+    errors: {},
+    localeId: 'en',
+    runtimeVersion,
+    selfName,
+  })
+
+  const pet = result.rows.find((row) => row.name === 'dsh-pet')
+  const context = result.rows.find((row) => row.name === 'dsh-context')
+  assert.equal(pet.status, STATUS.update)
+  assert.equal(pet.large, true)
+  assert.equal(pet.packageSize, 80 * 1024 * 1024)
+  assert.ok(pet.packageSize > LARGE_UPDATE_BYTES)
+  assert.equal(context.status, STATUS.update)
+  assert.equal(context.large, undefined)
+  assert.equal(context.packageSize, 1024 * 1024)
 })
 
 test('buildRows handles an empty bundle list', () => {

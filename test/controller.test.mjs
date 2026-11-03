@@ -332,6 +332,8 @@ test('requestUpdate opens a confirmation only for updatable rows', async () => {
     title: 'dsh-better-sidebar',
     currentVersion: '0.28.1',
     latestVersion: '0.28.2',
+    large: false,
+    packageSize: null,
   })
 
   controller.cancelConfirm()
@@ -466,6 +468,58 @@ test('updateAll updates every updatable row in order', async () => {
   assert.equal(snapshot.toast.updated, 2)
   assert.equal(snapshot.toast.failed, 0)
   assert.equal(snapshot.batch, null)
+})
+
+test('updateAll skips large packages and reports them', async () => {
+  const answers = {
+    ...BASE_ANSWERS,
+    'dsh-pet': manifestOf('dsh-pet', '0.3.8', { dist: { unpackedSize: 80 * 1024 * 1024 } }),
+  }
+  const { controller, calls } = build(BASE_BUNDLES, answers)
+  await controller.refresh()
+
+  await controller.updateAll()
+
+  const installs = calls.filter((call) => call.method === 'installBundle').map((call) => call.spec)
+  assert.deepEqual(installs, ['dsh-better-sidebar@0.28.2'])
+  const removals = calls.filter((call) => call.method === 'removeBundle').map((call) => call.name)
+  assert.deepEqual(removals, ['dsh-better-sidebar'])
+
+  const snapshot = controller.getSnapshot()
+  assert.equal(snapshot.toast.kind, 'batch')
+  assert.equal(snapshot.toast.updated, 1)
+  assert.equal(snapshot.toast.failed, 0)
+  assert.equal(snapshot.toast.skipped, 1)
+  assert.equal(snapshot.rows.find((row) => row.name === 'dsh-pet').large, true)
+
+  controller.requestUpdate('dsh-pet')
+  const confirm = controller.getSnapshot().confirm
+  assert.equal(confirm.name, 'dsh-pet')
+  assert.equal(confirm.large, true)
+  assert.equal(confirm.packageSize, 80 * 1024 * 1024)
+})
+
+test('updateAll reports skipped large packages when nothing else is updatable', async () => {
+  const bundles = [
+    installationBundle('@deepseek-ai/dsh-base'),
+    thirdParty('dsh-pet', '0.3.7'),
+    thirdParty('@moyumole/dsh-plugin-updates', '0.1.0'),
+  ]
+  const answers = {
+    'dsh-pet': manifestOf('dsh-pet', '0.3.8', { dist: { unpackedSize: 80 * 1024 * 1024 } }),
+    '@moyumole/dsh-plugin-updates': manifestOf('@moyumole/dsh-plugin-updates', '0.2.0'),
+  }
+  const { controller, calls } = build(bundles, answers)
+  await controller.refresh()
+
+  await controller.updateAll()
+
+  assert.equal(calls.filter((call) => call.method === 'installBundle').length, 0)
+  const snapshot = controller.getSnapshot()
+  assert.equal(snapshot.updatingAll, false)
+  assert.equal(snapshot.toast.kind, 'batch')
+  assert.equal(snapshot.toast.updated, 0)
+  assert.equal(snapshot.toast.skipped, 1)
 })
 
 test('a reported install phase only tracks this panel request', async () => {

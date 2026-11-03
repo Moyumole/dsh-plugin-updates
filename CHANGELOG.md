@@ -7,6 +7,32 @@ All notable changes to this project are documented here. The format follows
 Each release lists the changes in English first, then in Chinese.  
 每个版本的变更先列英文、再列中文。
 
+## [0.3.3] - 2026-11-03
+
+### Added
+
+- Large-package protection: a row whose registry manifest reports an unpacked
+  size over 30 MB is marked large, shows its size, and is skipped by "Update all"
+  (the batch toast reports how many were skipped). Single updates stay available,
+  with a size warning in the confirmation.
+- Tests for the size threshold, the batch skip, the confirmation payload and the
+  new copy (119 tests total).
+
+### Fixed
+
+- Documented the practical limit behind the dsh-pet ~71 MB update that interrupted
+  the host's install window: use a single update (or the CLI/official Plugins page)
+  for very large packages.
+
+### 新增
+
+- 大型插件保护：registry manifest 中解包大小超过 30 MB 的行会标记为“大型”，显示体积，并在「全部更新」中跳过（批量 toast 会提示跳过数量）。单个更新仍可用，确认条会显示体积警告。
+- 新增体积阈值、批量跳过、确认参数与新文案的测试（共 119 项）。
+
+### 修复
+
+- 记录并规避 `dsh-pet` 约 71 MB 的更新超出宿主安装窗口的问题：超大插件请单个更新（或使用 CLI/官方插件页）。
+
 ## [0.3.2] - 2026-11-03
 
 ### Fixed
