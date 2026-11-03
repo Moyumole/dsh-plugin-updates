@@ -7,6 +7,20 @@ All notable changes to this project are documented here. The format follows
 Each release lists the changes in English first, then in Chinese.  
 每个版本的变更先列英文、再列中文。
 
+## [0.3.2] - 2026-11-03
+
+### Fixed
+
+- The left-sidebar update dot was invisible until the Plugins page (or the Guide
+  card/toast) mounted. The badge element and its update count were correct, but
+  the panel's shared stylesheet — including `.dshu-rail-dot` — was only injected by
+  those other seats, so the icon's dot had zero size and a transparent background.
+  The rail icon now injects the stylesheet itself.
+
+### 修复
+
+- 左侧栏更新红点在打开插件页（或 Guide 卡片/toast）之前不可见：红点节点与更新数量都正确，但共享样式表（含 `.dshu-rail-dot`）只由面板等其他座位注入，导致图标里的红点尺寸为 0、背景透明。现在左侧栏图标会自行注入样式表。
+
 ## [0.3.1] - 2026-11-03
 
 ### Fixed

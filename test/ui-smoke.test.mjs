@@ -691,11 +691,16 @@ test('UpdateGlyph: original circular-arrow SVG painted with currentColor', () =>
   assert.equal(fallback.props.width, 16)
 })
 
-test('left sidebar icon: host pinwheel plus a hidden dot until updates are pending', () => {
+test('left sidebar icon: self-contained styles plus a hidden dot until updates are pending', () => {
   installController(makeSnapshot({ updateCount: 0 }))
   const idle = ui.LeftSidebarPluginsIcon({ size: 18, active: true })
-  assert.equal(hasClass(idle, 'dshu-rail'), true)
   const idleElements = descendants(idle, [])
+  const idleRail = idleElements.find((element) => hasClass(element, 'dshu-rail'))
+  assert.ok(idleRail, 'the rail wrapper is rendered')
+  assert.equal(idleRail.props['data-update-count'], '0')
+  const idleStyle = idleElements.find((element) => element.type === 'style')
+  assert.ok(idleStyle, 'the icon injects its own styles: the host sidebar does not mount the panel')
+  includes(textOf(idleStyle.props.children).join(''), '.dshu-rail-dot')
   const idleDot = idleElements.find((element) => hasClass(element, 'dshu-rail-dot'))
   assert.ok(idleDot, 'the dot is always mounted so the imperative fallback can reveal it')
   assert.equal(idleDot.props.style.display, 'none')
@@ -703,11 +708,12 @@ test('left sidebar icon: host pinwheel plus a hidden dot until updates are pendi
 
   installController(makeSnapshot({ updateCount: 2 }))
   const pending = ui.LeftSidebarPluginsIcon({ size: 18, active: false })
-  const dot = descendants(pending, []).find((element) => hasClass(element, 'dshu-rail-dot'))
+  const pendingElements = descendants(pending, [])
+  const pendingRail = pendingElements.find((element) => hasClass(element, 'dshu-rail'))
+  assert.equal(pendingRail.props['data-update-count'], '2')
+  const dot = pendingElements.find((element) => hasClass(element, 'dshu-rail-dot'))
   assert.ok(dot, 'a pending update draws the dot')
   assert.equal(dot.props.style, undefined, 'a pending dot is visible')
-  assert.equal(hasClass(pending, 'dshu-rail'), true)
-  assert.equal(pending.props['data-update-count'], '2')
 })
 
 /* --------------------------------------------------------- progress & toast */
