@@ -7,6 +7,29 @@ All notable changes to this project are documented here. The format follows
 Each release lists the changes in English first, then in Chinese.  
 每个版本的变更先列英文、再列中文。
 
+## [0.3.4] - 2026-11-08
+
+### Added
+
+- Install-registry fallback: updates and rollbacks ask the npmmirror mirror first
+  (fast in China) and, when the requested version has not been mirrored yet,
+  retry the official `registry.npmjs.org` with the same version. This removes the
+  "check says 0.4.6, mirror only has 0.4.5" `ERR_PNPM_NO_MATCHING_VERSION` failure.
+  Update checks remain on the official registry, so the version shown is the
+  authoritative one.
+
+### Fixed
+
+- A mirror version gap no longer turns a valid update into a failed install +
+  rollback cycle; the official retry completes the install.
+- New test covers the missing-version retry (120 tests total).
+
+### 新增
+
+- 安装源回退：更新与回滚先请求 npmmirror 镜像（国内更快），镜像尚未同步目标版本时，自动用官方 `registry.npmjs.org` 重试同一个版本。这样不会再出现“检查到 0.4.6、镜像只有 0.4.5”的 `ERR_PNPM_NO_MATCHING_VERSION` 失败。
+- 修复：镜像版本缺口不再把有效更新变成“安装失败 + 回滚”；官方重试可完成安装。
+- 新增“缺版本自动回退”测试（共 120 项）。
+
 ## [0.3.3] - 2026-11-03
 
 ### Added

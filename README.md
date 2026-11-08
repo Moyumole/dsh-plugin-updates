@@ -17,7 +17,7 @@ Repository: <https://github.com/Moyumole/dsh-plugin-updates> · Security: [SECUR
   - Left-sidebar "Plugins" icon badge (clicking it still opens the Plugins page)
 - **Checks**: once on page load; while the page is visible it re-checks every 30 minutes (hidden pages pause the timer and catch up on return), plus manual refresh. Registry answers are cached for 10 minutes. Only third-party bundles are checked (`official !== true`, `availability === 'profile'`, `installed === true`), excluding this plugin itself.
 - **All profiles (read-only)**: a section lists the third-party plugins of the other DSH profiles on this machine with the same update status logic. It is informational only — those profiles are never changed from here; open that profile's window or use `dsh plugin --profile <name> ...` to act on them.
-- **Updates**: "Update" for one bundle or "Update all", both through the official plugin manager (`removeBundle` → `installBundle(name@latest, { enabled })`). "Update all" skips large packages (unpacked over 30 MB, e.g. `dsh-pet` at ~71 MB) and reports them; update those one at a time from their row.
+- **Updates**: "Update" for one bundle or "Update all", both through the official plugin manager (`removeBundle` → `installBundle(name@latest, { enabled })`). "Update all" skips large packages (unpacked over 30 MB, e.g. `dsh-pet` at ~71 MB) and reports them; update those one at a time from their row. Installs ask the npmmirror mirror first and retry the official npm registry with the same version when the mirror has not synced it yet (the update check itself always uses the official registry).
 - **Progress and toasts**: phase text (removing / installing / applying / rollback) with a progress bar for single and batch updates; a top-center result toast (success / failure / rollback / batch) that dismisses itself and can be closed.
 - **Failure handling**: the previous version is restored on a best-effort basis; if the rollback also fails, a dismissible error remains and the real on-disk state is reloaded so the UI matches the profile.
 - **No background process, service or scheduled task**: the 30-minute timer only exists while the page is visible; DSH is never restarted automatically.
@@ -51,7 +51,7 @@ Or enter the package name `@moyumole/dsh-plugin-updates` in "Settings → Plugin
 **From GitHub (pinned)**
 
 ```powershell
-dsh plugin --profile web add "github:Moyumole/dsh-plugin-updates#v0.3.3"
+dsh plugin --profile web add "github:Moyumole/dsh-plugin-updates#v0.3.4"
 ```
 
 The repository root is the plugin directory and `lib/client.js` is committed, so installing it does not require a build.
@@ -117,7 +117,7 @@ Verified on Windows + DSH `0.2.1-rc.3`:
 - [ ] Real "install failure → rollback" path (covered by unit tests; fault injection would be destructive on a real profile)
 - [ ] Linux / macOS and other DSH versions
 
-Automated checks: `node --test test/*.test.mjs` (119 tests: SemVer, compatibility, registry fallback/cache/input hardening, row building, large-package protection, controller state machine and rollback, host-capability failures, auto-check scheduling policy, cross-profile inventory and route, UI rendering and style constraints, bundle consistency). CI also verifies the committed bundle matches its sources.
+Automated checks: `node --test test/*.test.mjs` (120 tests: SemVer, compatibility, registry fallback/cache/input hardening, row building, large-package protection, install-registry fallback, controller state machine and rollback, host-capability failures, auto-check scheduling policy, cross-profile inventory and route, UI rendering and style constraints, bundle consistency). CI also verifies the committed bundle matches its sources.
 
 ### Known limitations
 
@@ -127,7 +127,7 @@ Automated checks: `node --test test/*.test.mjs` (119 tests: SemVer, compatibilit
 - If the host removes or renames a Remote method (for example `installBundle`), the panel shows a localized "plugin manager is not available" banner and updates fail on that row instead of throwing an obscure error.
 - Large packages (unpacked over 30 MB) are excluded from "Update all"; update them individually. A single large update can take minutes, and a slow download can still exceed the host's install window — use the official Plugins page or the CLI in that case.
 - The left-sidebar badge shadows the host's "Plugins" icon cell (`sidebar.panellist`, `priority: -1`); a host redesign may require a visual sync, but functionality is unaffected.
-- Only the npm registry is supported (npmjs with the npmmirror fallback); private registries are not.
+- Only the npm ecosystem is supported: checks use the official npm registry, and installs ask npmmirror first with an official-registry retry when a version has not been mirrored yet. Private registries are not supported.
 - This plugin does not check or update DSH itself, and does not manage official `@deepseek-ai/*` bundles.
 - This plugin does not list itself (so the panel does not disappear while updating it); update it from the official Plugins page.
 - DSH is not restarted automatically; a page refresh re-checks and results are kept in memory only.
@@ -208,7 +208,7 @@ MIT
   - 左侧栏「插件」图标右上角红点（点击仍进入「插件」页）
 - **检查**：页面加载时自动检查一次；**页面可见时每 30 分钟自动再检查一次**（切到后台暂停，回到前台若已过期立即补一次）；也支持手动「刷新」；npm registry 结果缓存 10 分钟；只检查 `official !== true`、`availability === 'profile'`、`installed === true` 的第三方 bundle，并排除本插件自身
 - **所有 Profile（只读）**：面板下方列出本机其他 profile 的第三方插件更新状况（复用同一套状态判断）。这里**只展示、不修改**；要更新请打开对应 profile 的窗口，或用 `dsh plugin --profile <name> ...`。
-- **更新**：单个「更新」或「全部更新」；通过 DSH 官方插件管理器执行 `removeBundle` → `installBundle(name@latest, { enabled })`。「全部更新」会跳过大型插件（解包超过 30 MB，例如约 71 MB 的 `dsh-pet`）并在结果里提示；这些请在对应行单独更新。
+- **更新**：单个「更新」或「全部更新」；通过 DSH 官方插件管理器执行 `removeBundle` → `installBundle(name@latest, { enabled })`。「全部更新」会跳过大型插件（解包超过 30 MB，例如约 71 MB 的 `dsh-pet`）并在结果里提示；这些请在对应行单独更新。安装时先请求 npmmirror 镜像，镜像尚未同步该版本时自动用官方 npm registry 重试同一个版本（检查更新本身始终使用官方源）。
 - **进度与提示**：更新时显示阶段文案（移除旧版 / 安装新版 / 应用 / 回滚）与进度条（单个为不确定进度，全部更新为 done/total）；结束时顶部居中弹出结果 toast（成功 / 失败 / 回滚 / 批量汇总，自动消失、可手动关闭）
 - **失败处理**：安装失败时尽力回滚到旧版本；回滚也失败时保留可关闭的错误提示，并重新读取真实安装状态，保证 UI 与磁盘一致
 - **不常驻**：无后台进程、无服务、无计划任务；30 分钟定时器只在页面可见时存在（隐藏即清除）；不自动重启 DSH
@@ -242,7 +242,7 @@ dsh plugin --profile web add "@moyumole/dsh-plugin-updates"
 **从 GitHub 安装（锁版本）**
 
 ```powershell
-dsh plugin --profile web add "github:Moyumole/dsh-plugin-updates#v0.3.3"
+dsh plugin --profile web add "github:Moyumole/dsh-plugin-updates#v0.3.4"
 ```
 
 仓库根目录就是插件目录，`lib/client.js` 已随仓库提交，安装时**不需要构建**。
@@ -310,7 +310,7 @@ dsh plugin --profile web add "<本机路径>/dsh-plugin-updates"
 - [ ] 真机「安装失败 → 回滚」路径（当前由单元测试覆盖；故障注入对真实环境有破坏性，暂不做）
 - [ ] Linux / macOS、其他 DSH 版本
 
-自动化测试：`node --test test/*.test.mjs`（119 项，覆盖版本比较、兼容性、registry 回退/缓存/输入加固、行构建、大插件保护、controller 状态机与回滚、宿主能力缺失、自动复查调度策略、跨 profile 清点与路由、UI 渲染与样式约束、bundle 一致性）；CI 还会校验生成物与源码一致。
+自动化测试：`node --test test/*.test.mjs`（120 项，覆盖版本比较、兼容性、registry 回退/缓存/输入加固、行构建、大插件保护、安装源回退、controller 状态机与回滚、宿主能力缺失、自动复查调度策略、跨 profile 清点与路由、UI 渲染与样式约束、bundle 一致性）；CI 还会校验生成物与源码一致。
 
 ### 已知限制
 
@@ -320,7 +320,7 @@ dsh plugin --profile web add "<本机路径>/dsh-plugin-updates"
 - 若宿主删除或重命名了 Remote 方法（例如 `installBundle`），面板会显示本地化的「插件管理器不可用」错误横幅，更新会按失败处理，而不是抛出难以理解的异常。
 - 大型插件（解包超过 30 MB）不会进入「全部更新」，请逐个更新。单个大插件安装也可能需要数分钟；如果下载过慢、超出宿主的安装窗口，请改用官方插件页或 CLI。
 - 左侧栏红点通过遮蔽宿主「插件」图标单元实现（`sidebar.panellist` 的 `plugins` 单元，`priority: -1`）；宿主大改该图标时外观需要同步，功能不受影响。
-- 只支持 npm registry（官方源 + npmmirror 回退），不支持私有 registry。
+- 只支持 npm 生态：检查更新使用官方 npm registry；安装先请求 npmmirror，镜像尚未同步该版本时自动用官方 registry 重试。不支持私有 registry。
 - 不检查、不更新 DSH 本体；不管理官方随附 bundle（`@deepseek-ai/*`）。
 - 不列出本插件自身（避免更新过程中面板消失）；如需更新本插件请用官方插件页。
 - 不自动重启 DSH；刷新页面后检查结果会重新获取（缓存仅保存在内存）。自动复查只在页面可见时进行，后台标签页不消耗资源。

@@ -522,6 +522,38 @@ test('updateAll reports skipped large packages when nothing else is updatable', 
   assert.equal(snapshot.toast.skipped, 1)
 })
 
+test('a version missing from the mirror is retried against the official registry', async () => {
+  const registries = []
+  const { controller } = build(BASE_BUNDLES, BASE_ANSWERS, {
+    install: (spec, options, state) => {
+      registries.push(options.registry)
+      if (options.registry === 'https://registry.npmmirror.com/') {
+        return {
+          changed: false,
+          application: 'failed',
+          stage: 'install',
+          target: 'dsh-better-sidebar',
+          error: { code: 'operation-error', diagnostic: '[ERR_PNPM_NO_MATCHING_VERSION] No matching version found for dsh-better-sidebar@0.28.2 while fetching it from https://registry.npmmirror.com/' },
+        }
+      }
+      state.bundles = state.bundles.filter((bundle) => bundle.name !== 'dsh-better-sidebar')
+      state.bundles.push(thirdParty('dsh-better-sidebar', '0.28.2'))
+      return { changed: true, application: 'restart-required', stage: 'install', target: 'dsh-better-sidebar' }
+    },
+  })
+  await controller.refresh()
+
+  controller.requestUpdate('dsh-better-sidebar')
+  await controller.confirmUpdate()
+
+  assert.deepEqual(registries, [
+    'https://registry.npmmirror.com/',
+    'https://registry.npmjs.org/',
+  ])
+  assert.equal(controller.getSnapshot().results['dsh-better-sidebar'].kind, 'updated')
+  assert.equal(controller.getSnapshot().rows.find((row) => row.name === 'dsh-better-sidebar').currentVersion, '0.28.2')
+})
+
 test('a reported install phase only tracks this panel request', async () => {
   let releaseInstall = () => {}
   const installGate = new Promise((resolve) => {
