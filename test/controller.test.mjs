@@ -183,6 +183,33 @@ test('refresh lists third-party bundles with their update state', async () => {
   )
 })
 
+test('refresh exposes an informational DSH update hint', async () => {
+  const answers = {
+    ...BASE_ANSWERS,
+    '@deepseek-ai/dsh': manifestOf('@deepseek-ai/dsh', '0.2.2-rc.1'),
+  }
+  const { controller } = build(BASE_BUNDLES, answers)
+  await controller.refresh()
+  await new Promise((resolve) => setImmediate(resolve))
+
+  const hint = controller.getSnapshot().dshUpdate
+  assert.equal(hint.currentVersion, '0.2.1-rc.3')
+  assert.equal(hint.latestVersion, '0.2.2-rc.1')
+  assert.equal(hint.url, 'https://github.com/deepseek-ai/deepseek-harness/releases/tag/dsh-v0.2.2-rc.1')
+})
+
+test('refresh hides the DSH hint when the running version is current', async () => {
+  const answers = {
+    ...BASE_ANSWERS,
+    '@deepseek-ai/dsh': manifestOf('@deepseek-ai/dsh', '0.2.1-rc.3'),
+  }
+  const { controller } = build(BASE_BUNDLES, answers)
+  await controller.refresh()
+  await new Promise((resolve) => setImmediate(resolve))
+
+  assert.equal(controller.getSnapshot().dshUpdate, null)
+})
+
 test('refresh marks a bundle whose latest version rejects this runtime as incompatible', async () => {
   const bundles = [...BASE_BUNDLES, thirdParty('dsh-context', '0.77.0')]
   const answers = {

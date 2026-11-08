@@ -64,6 +64,9 @@ const REQUIRED_KEYS = [
   'row.large',
   'confirm.large',
   'toast.batchSkipped',
+  'dshUpdate.title',
+  'dshUpdate.body',
+  'dshUpdate.notes',
   'progress.removing',
   'progress.installing',
   'progress.applying',
@@ -358,6 +361,23 @@ test('panel: empty ready snapshot shows the empty state, never-checked time and 
   const refresh = findButton(mounted.tree, (button) => button.props['aria-label'] === DICTS.en['panel.refresh'])
   assert.ok(refresh, 'refresh button should render')
   assert.notEqual(refresh.props.disabled, true)
+})
+
+test('panel: DSH update hint renders the versions, guidance and release link', () => {
+  const url = 'https://github.com/deepseek-ai/deepseek-harness/releases/tag/dsh-v0.2.2-rc.1'
+  const mounted = mountPanel({
+    phase: 'ready',
+    rows: [],
+    dshUpdate: { currentVersion: '0.2.1-rc.5', latestVersion: '0.2.2-rc.1', url },
+  })
+  includes(mounted.text, 'DSH 0.2.2-rc.1 is available (current 0.2.1-rc.5)')
+  includes(mounted.text, DICTS.en['dshUpdate.body'])
+  includes(mounted.text, DICTS.en['dshUpdate.notes'])
+  const link = mounted.elements.find((element) => element.type === 'a' && element.props.className === 'dshu-link')
+  assert.ok(link, 'release link should render')
+  assert.equal(link.props.href, url)
+  assert.equal(link.props.target, '_blank')
+  assert.equal(link.props.rel, 'noopener noreferrer')
 })
 
 test('panel: Chinese translator produces Chinese copy', () => {

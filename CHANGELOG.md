@@ -7,6 +7,22 @@ All notable changes to this project are documented here. The format follows
 Each release lists the changes in English first, then in Chinese.  
 每个版本的变更先列英文、再列中文。
 
+## [0.3.5] - 2026-11-08
+
+### Added
+
+- Informational DSH update hint: after each check, compares the running
+  `runtimeVersion` with the latest `@deepseek-ai/dsh` on npm. When a newer
+  version exists, the panel shows "DSH x is available (current y)" with a link to
+  the matching `dsh-v*` GitHub Release notes. A failed lookup stays silent and
+  never fails the plugin check; installing DSH remains the built-in updater's job.
+- Tests for the hint (newer/equal version) and the banner link (123 tests total).
+
+### 新增
+
+- DSH 版本提示（只读）：每次检查后把当前 `runtimeVersion` 与 npm 上最新的 `@deepseek-ai/dsh` 对比；有更新时面板显示「DSH 有新版本 x（当前 y）」并链接到对应的 `dsh-v*` GitHub Release 说明。查询失败静默忽略，不影响插件检查；DSH 的安装仍由桌面端自带更新器负责。
+- 新增提示（有更新/已最新）与横幅链接的测试（共 123 项）。
+
 ## [0.3.4] - 2026-11-08
 
 ### Added
